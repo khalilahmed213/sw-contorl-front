@@ -101,8 +101,6 @@ const actions = {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
-      
-      commit('UPDATE_SCHEDULE', response.data.data); 
       return { success: true, message: response.data.message }; 
     } catch (error) {
       console.log(error.response.data.message)
