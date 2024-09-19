@@ -48,11 +48,12 @@
       <v-card>
         <v-card-title>{{ formTitle }}</v-card-title>
         <v-card-text>
-          <v-form ref="form" v-model="valid" lazy-validation>
+          <v-form ref="form" v-model="valid" @submit.prevent="saveItem">
             <v-text-field
               v-model="editedItem.date"
               label="Date"
               type="date"
+              :rules="[v => !!v || 'La date est requise', validateDate]"
               required
               :min="getCurrentDate()"
             ></v-text-field>
@@ -60,14 +61,23 @@
               v-model="editedItem.heureDebut"
               label="Heure de Début"
               type="time"
+              :rules="[v => !!v || 'L\'heure de début est requise', validateStartTime]"
               required
             ></v-text-field>
             <v-text-field
               v-model="editedItem.heureFin"
               label="Heure de Fin"
               type="time"
+              :rules="[v => !!v || 'L\'heure de fin est requise', validateEndTime]"
               required
             ></v-text-field>
+            <v-alert
+              v-if="formError"
+              type="error"
+              class="mt-3"
+            >
+              {{ formError }}
+            </v-alert>
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -114,6 +124,7 @@ export default {
       dialog: false,
       dialogDelete: false,
       valid: false,
+      formError: null,
       headers: [
         { title: 'Date', key: 'date' },
         { title: 'Heure de Début', key: 'heureDebut' },
@@ -140,7 +151,7 @@ export default {
         page: 1,
         sortBy: [],
         sortDesc: [],
-        itemsPerPage: 10, // Add a default value
+        itemsPerPage: 10,
       },
       snackbar: false,
       snackbarMessage: '',
@@ -163,14 +174,12 @@ export default {
   methods: {
     ...mapActions('autorisation', ['fetchUserAutorisations', 'createAutorisation', 'updateAutorisation', 'deleteAutorisation']),
     
-    async fetchAutorisations(newOptions) { // Don't fetch if user ID is not available
-      
+    async fetchAutorisations(newOptions) {
       if (newOptions) {
         this.options = newOptions;
       }
       const { page, itemsPerPage, sortBy, sortDesc } = this.options;
 
-      // Adjusting to handle the new structure of sortBy
       const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'date';
       const sortOrder = sortBy && sortBy.length > 0  ? sortBy[0].order : 'asc';
 
@@ -214,8 +223,68 @@ export default {
       });
     },
 
+    validateDate(value) {
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return selectedDate >= today || 'La date doit être aujourd\'hui ou dans le futur';
+    },
+
+    validateStartTime(value) {
+      const startTime = this.parseTime(value);
+      const minTime = this.parseTime('08:00');
+      const maxTime = this.parseTime('18:00');
+      
+      if (startTime < minTime || startTime > maxTime) {
+        return 'L\'heure de début doit être entre 08:00 et 18:00';
+      }
+      
+      return true;
+    },
+
+    validateEndTime(value) {
+      if (!this.editedItem.heureDebut) return true;
+      
+      const startTime = this.parseTime(this.editedItem.heureDebut);
+      const endTime = this.parseTime(value);
+      const maxTime = this.parseTime('18:00');
+      
+      if (endTime <= startTime) {
+        return 'L\'heure de fin doit être après l\'heure de début';
+      }
+      
+      if (endTime > maxTime) {
+        return 'L\'heure de fin ne doit pas dépasser 18:00';
+      }
+      
+      const durationInHours = (endTime - startTime) / (1000 * 60 * 60);
+      if (durationInHours > 4) {
+        return 'La durée ne doit pas dépasser 4 heures';
+      }
+      
+      return true;
+    },
+
+    parseTime(timeString) {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    },
+
     async saveItem() {
       if (this.$refs.form.validate()) {
+        const startTime = this.parseTime(this.editedItem.heureDebut);
+        const endTime = this.parseTime(this.editedItem.heureFin);
+        const durationInHours = (endTime - startTime) / (1000 * 60 * 60);
+
+        if (durationInHours > 4) {
+          this.formError = 'La durée de l\'autorisation ne doit pas dépasser 4 heures';
+          return;
+        }
+
+        this.formError = null;
+
         try {
           if (this.editedItem.id) {
             await this.updateAutorisation({
@@ -239,18 +308,19 @@ export default {
             this.showSnackbar('Autorisation ajoutée avec succès', 'success');
           }
           this.closeDialog();
-          await this.fetchAutorisations(this.options)
+          await this.fetchAutorisations(this.options);
         } catch (error) {
-          console.error('Failed to save autorisation:', error);
+          console.error('Échec de l\'enregistrement de l\'autorisation:', error);
           this.showSnackbar('Erreur lors de l\'enregistrement de l\'autorisation', 'error');
         }
       }
     },
+
     async deleteItemConfirm() {
       try {
         await this.deleteAutorisation(this.editedItem.id);
         this.closeDelete();
-       await this.fetchAutorisations(this.options)
+        await this.fetchAutorisations(this.options);
         this.showSnackbar('Autorisation supprimée avec succès', 'success');
       } catch (error) {
         console.error('Failed to delete autorisation:', error);
@@ -270,7 +340,8 @@ export default {
           return 'grey';
       }
     },
-      getCurrentDate() {
+
+    getCurrentDate() {
       const today = new Date();
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -295,29 +366,28 @@ export default {
       return item.status.toLowerCase() === 'en attente';
     },
   },
-  
 
   created() {
-   console.log(this.autorisations)
+    console.log(this.autorisations);
   },
   watch: {
-  'editedItem.heureFin'(newVal) {
-    if (newVal && this.editedItem.heureDebut && newVal < this.editedItem.heureDebut) {
-      this.timeError = "Respectez l'ordre des heures";
-      alert("Respectez l'ordre des heures");
-    } else {
-      this.timeError = null;
-    }
-  },
-  'editedItem.heureDebut'(newVal) {
-    if (newVal && this.editedItem.heureFin && this.editedItem.heureFin < newVal) {
-      this.timeError = "Respectez l'ordre des heures";
-      alert("Respectez l'ordre des heures");
-    } else {
-      this.timeError = null;
+    'editedItem.heureFin'(newVal) {
+      if (newVal && this.editedItem.heureDebut && newVal < this.editedItem.heureDebut) {
+        this.timeError = "Respectez l'ordre des heures";
+        alert("Respectez l'ordre des heures");
+      } else {
+        this.timeError = null;
+      }
+    },
+    'editedItem.heureDebut'(newVal) {
+      if (newVal && this.editedItem.heureFin && this.editedItem.heureFin < newVal) {
+        this.timeError = "Respectez l'ordre des heures";
+        alert("Respectez l'ordre des heures");
+      } else {
+        this.timeError = null;
+      }
     }
   }
-}
 };
 </script>
 

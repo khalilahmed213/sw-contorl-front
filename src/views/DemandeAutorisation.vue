@@ -154,8 +154,4 @@ export default {
 </script>
 
 <style scoped>
-/* Remove these styles as they are no longer needed */
-/* .v-chip.green { background-color: green !important; }
-.v-chip.red { background-color: red !important; }
-.v-chip.orange { background-color: orange !important; } */
 </style>
