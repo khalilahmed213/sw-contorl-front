@@ -9,7 +9,7 @@
 
       <v-list density="compact" nav>
         <div v-if="this.$store.getters['auth/userRole'] === 'admin'">
-          <v-list-item to="/app/home" prepend-icon="mdi-home-city" title="Home"></v-list-item>
+          <v-list-item to="/app/home" prepend-icon="mdi-home" title="Home"></v-list-item>
 
           <v-list-group value="Gestion Congé">
             <template v-slot:activator="{ props }">
@@ -19,25 +19,25 @@
                 title="Gestion Congé"
               ></v-list-item>
             </template>
-            <v-list-item to="/app/conge" title="Congé"></v-list-item>
-            <v-list-item to="/app/demandeconge" title="Demandes Congés"></v-list-item>
-            <v-list-item to="/app/presenceparticulier" title="Présence particulier"></v-list-item>
+            <v-list-item to="/app/conge" prepend-icon="mdi-calendar-check" title="Congé"></v-list-item>
+            <v-list-item to="/app/demandeconge" prepend-icon="mdi-calendar-clock" title="Demandes Congés"></v-list-item>
+            <v-list-item to="/app/presenceparticulier" prepend-icon="mdi-calendar-account" title="Présence particulier"></v-list-item>
           </v-list-group>
 
-          <v-list-item to="/app/gestionutilisateur" prepend-icon="mdi-account-group-outline" title="Gestion utilisateur"></v-list-item>
-          <v-list-item to="/app/demandeautorisation" prepend-icon="mdi-calendar-check" title="Demandes Autorisation"></v-list-item>
-          <v-list-item to="/app/presence" prepend-icon="mdi-account-group-outline" title="Presence"></v-list-item>
-          <v-list-item to="/app/penalite" prepend-icon="mdi-account-group-outline" title="Penalite"></v-list-item>
-          <v-list-item to="/app/absence" prepend-icon="mdi-account-group-outline" title="Absence"></v-list-item>
-          <v-list-item to="/app/retard" prepend-icon="mdi-account-group-outline" title="Retard"></v-list-item>
-          <v-list-item to="/app/confighoraire" prepend-icon="mdi-account-group-outline" title="Horaires"></v-list-item>
-          <v-list-item to="/app/projets" prepend-icon="mdi-account-group-outline" title="Projets"></v-list-item>
+          <v-list-item to="/app/gestionutilisateur" prepend-icon="mdi-account-group" title="Gestion utilisateur"></v-list-item>
+          <v-list-item to="/app/demandeautorisation" prepend-icon="mdi-clipboard-check" title="Demandes Autorisation"></v-list-item>
+          <v-list-item to="/app/presence" prepend-icon="mdi-account-check" title="Presence"></v-list-item>
+          <v-list-item to="/app/penalite" prepend-icon="mdi-gavel" title="Penalite"></v-list-item>
+          <v-list-item to="/app/absence" prepend-icon="mdi-account-off" title="Absence"></v-list-item>
+          <v-list-item to="/app/retard" prepend-icon="mdi-clock-alert" title="Retard"></v-list-item>
+          <v-list-item to="/app/confighoraire" prepend-icon="mdi-clock" title="Horaires"></v-list-item>
+          <v-list-item to="/app/projets" prepend-icon="mdi-briefcase" title="Projets"></v-list-item>
         </div>
         <div v-else>
-          <v-list-item to="/employee/presenceparticulier" prepend-icon="mdi-account-group-outline" title="Congé"></v-list-item>
-          <v-list-item to="/employee/retardp" prepend-icon="mdi-account-group-outline" title="Retard"></v-list-item>
-          <v-list-item to="/employee/demandeautorisation" prepend-icon="mdi-account-group-outline" title="Demande autorisation"></v-list-item>
-          <v-list-item to="/employee/demandeconge" prepend-icon="mdi-account-group-outline" title="Demande congé"></v-list-item>
+          <v-list-item to="/employee/presenceparticulier" prepend-icon="mdi-calendar-account" title="Congé"></v-list-item>
+          <v-list-item to="/employee/retardp" prepend-icon="mdi-clock-alert" title="Retard"></v-list-item>
+          <v-list-item to="/employee/demandeautorisation" prepend-icon="mdi-clipboard-check" title="Demande autorisation"></v-list-item>
+          <v-list-item to="/employee/demandeconge" prepend-icon="mdi-calendar-clock" title="Demande congé"></v-list-item>
         </div>
       </v-list>
     </v-navigation-drawer>
@@ -51,7 +51,7 @@
           <v-img src="https://via.placeholder.com/150" alt="Profile"></v-img>
         </v-avatar>
       </v-btn>
-      <v-btn @click="Logout">Logout</v-btn>
+      <v-btn @click="Logout" prepend-icon="mdi-logout">Logout</v-btn>
     </v-app-bar>
 
     <v-main>
