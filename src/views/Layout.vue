@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" :rail="mini" permanent>
+    <v-navigation-drawer v-model="drawer" :rail="mini" permanent @update:rail="handleRailUpdate">
       <v-list>
         <v-list-item prepend-avatar="/Capture.png" title="swcontrole"></v-list-item>
       </v-list>
@@ -11,7 +11,7 @@
         <div v-if="this.$store.getters['auth/userRole'] === 'admin'">
           <v-list-item to="/app/home" prepend-icon="mdi-home" title="Home"></v-list-item>
 
-          <v-list-group value="Gestion Congé">
+          <v-list-group value="gestion-conge">
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
@@ -19,9 +19,25 @@
                 title="Gestion Congé"
               ></v-list-item>
             </template>
-            <v-list-item to="/app/conge" prepend-icon="mdi-calendar-check" title="Congé"></v-list-item>
-            <v-list-item to="/app/demandeconge" prepend-icon="mdi-calendar-clock" title="Demandes Congés"></v-list-item>
-            <v-list-item to="/app/presenceparticulier" prepend-icon="mdi-calendar-account" title="Présence particulier"></v-list-item>
+
+            <v-list-item to="/app/conge" class="submenu-item">
+              <template v-slot:prepend>
+                <v-icon icon="mdi-calendar-check" size="small"></v-icon>
+              </template>
+              <v-list-item-title class="text-wrap">Congé</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/app/demandeconge" class="submenu-item">
+              <template v-slot:prepend>
+                <v-icon icon="mdi-calendar-clock" size="small"></v-icon>
+              </template>
+              <v-list-item-title class="text-wrap">Demandes Congés</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/app/presenceparticulier" class="submenu-item">
+              <template v-slot:prepend>
+                <v-icon icon="mdi-calendar-account" size="small"></v-icon>
+              </template>
+              <v-list-item-title class="text-wrap">Présence particulier</v-list-item-title>
+            </v-list-item>
           </v-list-group>
 
           <v-list-item to="/app/gestionutilisateur" prepend-icon="mdi-account-group" title="Gestion utilisateur"></v-list-item>
@@ -43,7 +59,7 @@
     </v-navigation-drawer>
 
     <v-app-bar>
-      <v-app-bar-nav-icon @click="mini = !mini"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="toggleMini"></v-app-bar-nav-icon>
       <v-app-bar-title>{{ currentRouteName }}</v-app-bar-title>
       <v-spacer></v-spacer>
       <v-btn icon @click="goToProfile">
@@ -85,6 +101,14 @@ export default {
     goToProfile() {
       this.$router.push({ name: 'Profile' });
     },
+    toggleMini() {
+      this.mini = !this.mini;
+    },
+    handleRailUpdate(value) {
+      if (!value) {
+        this.mini = false;
+      }
+    }
   }
 }
 </script>
@@ -93,5 +117,19 @@ export default {
 .v-list-item--active {
   background-color: rgb(var(--v-theme-primary));
   color: rgb(var(--v-theme-on-primary));
+}
+
+.submenu-item {
+  padding-left: 16px;
+}
+
+.text-wrap {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.v-list-group__items .v-list-item {
+  min-height: 40px;
 }
 </style>

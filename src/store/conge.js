@@ -88,7 +88,24 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+  async fetchUserConges({ commit }, { userId, page, limit, sortBy, sortOrder }) {
+    commit('SET_LOADING', true);
+    try {
+      const response = await axios.get(`http://localhost:3000/api/conge`, {
+        params: { page, limit, sortBy, sortOrder ,userId},
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`
+        }
+      });
+      commit('SET_CONGES', response.data);
+    } catch (error) {
+      commit('SET_ERROR', error.message);
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
 };
+
 
 const getters = {
   getConges: state => state.conges,
