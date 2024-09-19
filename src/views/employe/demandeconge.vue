@@ -12,7 +12,7 @@
           <div class="display-1 font-weight-bold">21 jours</div>
         </v-card>
               <v-spacer></v-spacer>
-              <v-btn color="primary" @click="showAddModal = true">Ajouter une nouvelle demande</v-btn>
+              <v-btn color="primary" @click="showAddModal = true">Ajouter une nouvelle demande de congé</v-btn>
             </v-card-title>
             <v-card-text>
               <v-data-table

@@ -370,24 +370,6 @@ export default {
   created() {
     console.log(this.autorisations);
   },
-  watch: {
-    'editedItem.heureFin'(newVal) {
-      if (newVal && this.editedItem.heureDebut && newVal < this.editedItem.heureDebut) {
-        this.timeError = "Respectez l'ordre des heures";
-        alert("Respectez l'ordre des heures");
-      } else {
-        this.timeError = null;
-      }
-    },
-    'editedItem.heureDebut'(newVal) {
-      if (newVal && this.editedItem.heureFin && this.editedItem.heureFin < newVal) {
-        this.timeError = "Respectez l'ordre des heures";
-        alert("Respectez l'ordre des heures");
-      } else {
-        this.timeError = null;
-      }
-    }
-  }
 };
 </script>
 

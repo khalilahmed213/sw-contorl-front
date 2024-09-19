@@ -159,7 +159,6 @@
 </template>
 
 <script>
-import { toRaw } from 'vue';
 import { mapGetters } from 'vuex';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -182,7 +181,7 @@ export default {
       headers: [
         { title: "Agent", align: "start", key: "name" },
         { title: "Email", key: "email" },
-        { title: "Nombre de mois", key: "months" },
+        { title: "Nombre de mois", key: "UserInfo.months" },
         { title: "Numéro de téléphone", key: "phoneNumber" },
         { title: "Adresse", key: "address" },
         { title: "Actions", key: "actions", sortable: false },
