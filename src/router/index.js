@@ -73,7 +73,7 @@ const routes = [
       },
       {
         path: 'demandeconge',
-        name: 'Demande Conge',
+        name: 'Demande Congé',
         component: DemandeConge
       },
       {
@@ -155,7 +155,7 @@ const routes = [
       },
       {
         path: 'demandeconge',
-        name: 'Demande conge employé',
+        name: 'Demande congé employé',
         component: demandecongeemp
       },
       

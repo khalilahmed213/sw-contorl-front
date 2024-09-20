@@ -1,6 +1,11 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" :rail="mini" permanent @update:rail="handleRailUpdate">
+    <v-navigation-drawer
+      v-model="drawer"
+      :rail="mini"
+      permanent
+      @update:rail="handleRailUpdate"
+    >
       <v-list>
         <v-list-item prepend-avatar="/Capture.png" title="swcontrole"></v-list-item>
       </v-list>
@@ -8,53 +13,31 @@
       <v-divider></v-divider>
 
       <v-list density="compact" nav>
-        <div v-if="this.$store.getters['auth/userRole'] === 'admin'">
-          <v-list-item to="/app/home" prepend-icon="mdi-home" title="Home"></v-list-item>
+        <v-list-item
+          v-for="item in menuItems"
+          :key="item.title"
+          :to="item.to"
+          :prepend-icon="item.icon"
+          :title="item.title"
+          @click="handleItemClick(item)"
+        ></v-list-item>
+      </v-list>
+    </v-navigation-drawer>
 
-          <v-list-group value="gestion-conge">
-            <template v-slot:activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                prepend-icon="mdi-calendar"
-                title="Gestion Congé"
-              ></v-list-item>
-            </template>
-
-            <v-list-item to="/app/conge" class="submenu-item">
-              <template v-slot:prepend>
-                <v-icon icon="mdi-calendar-check" size="small"></v-icon>
-              </template>
-              <v-list-item-title class="text-wrap">Congé</v-list-item-title>
-            </v-list-item>
-            <v-list-item to="/app/demandeconge" class="submenu-item">
-              <template v-slot:prepend>
-                <v-icon icon="mdi-calendar-clock" size="small"></v-icon>
-              </template>
-              <v-list-item-title class="text-wrap">Demandes Congés</v-list-item-title>
-            </v-list-item>
-            <v-list-item to="/app/presenceparticulier" class="submenu-item">
-              <template v-slot:prepend>
-                <v-icon icon="mdi-calendar-account" size="small"></v-icon>
-              </template>
-              <v-list-item-title class="text-wrap">Présence particulier</v-list-item-title>
-            </v-list-item>
-          </v-list-group>
-
-          <v-list-item to="/app/gestionutilisateur" prepend-icon="mdi-account-group" title="Gestion utilisateur"></v-list-item>
-          <v-list-item to="/app/demandeautorisation" prepend-icon="mdi-clipboard-check" title="Demandes Autorisation"></v-list-item>
-          <v-list-item to="/app/presence" prepend-icon="mdi-account-check" title="Presence"></v-list-item>
-          <v-list-item to="/app/penalite" prepend-icon="mdi-gavel" title="Penalite"></v-list-item>
-          <v-list-item to="/app/absence" prepend-icon="mdi-account-off" title="Absence"></v-list-item>
-          <v-list-item to="/app/retard" prepend-icon="mdi-clock-alert" title="Retard"></v-list-item>
-          <v-list-item to="/app/confighoraire" prepend-icon="mdi-clock" title="Horaires"></v-list-item>
-          <v-list-item to="/app/projets" prepend-icon="mdi-briefcase" title="Projets"></v-list-item>
-        </div>
-        <div v-else>
-          <v-list-item to="/employee/presenceparticulier" prepend-icon="mdi-calendar-account" title="Congé"></v-list-item>
-          <v-list-item to="/employee/retardp" prepend-icon="mdi-clock-alert" title="Retard"></v-list-item>
-          <v-list-item to="/employee/demandeautorisation" prepend-icon="mdi-clipboard-check" title="Demande autorisation"></v-list-item>
-          <v-list-item to="/employee/demandeconge" prepend-icon="mdi-calendar-clock" title="Demande congé"></v-list-item>
-        </div>
+    <v-navigation-drawer
+      v-model="expandedMenuDrawer"
+      temporary
+      location="left"
+      width="300"
+    >
+      <v-list>
+        <v-list-item
+          v-for="subItem in selectedMenuItem.subItems"
+          :key="subItem.title"
+          :to="subItem.to"
+          :prepend-icon="subItem.icon"
+          :title="subItem.title"
+        ></v-list-item>
       </v-list>
     </v-navigation-drawer>
 
@@ -77,7 +60,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
   name: 'Layout',
@@ -85,12 +68,44 @@ export default {
     return {
       drawer: true,
       mini: false,
+      expandedMenuDrawer: false,
+      selectedMenuItem: { subItems: [] },
     };
   },
   computed: {
+    ...mapGetters('auth', ['userRole']),
     currentRouteName() {
       return this.$route.name;
-    }
+    },
+    menuItems() {
+      return this.userRole === 'admin'
+        ? [
+            { title: 'Home', icon: 'mdi-home', to: '/app/home' },
+            { 
+              title: 'Gestion Congé', 
+              icon: 'mdi-calendar',
+              subItems: [
+                { title: 'Congé', icon: 'mdi-calendar-check', to: '/app/conge' },
+                { title: 'Demandes Congés', icon: 'mdi-calendar-clock', to: '/app/demandeconge' },
+                { title: 'Présence particulier', icon: 'mdi-calendar-account', to: '/app/presenceparticulier' },
+              ]
+            },
+            { title: 'Gestion utilisateur', icon: 'mdi-account-group', to: '/app/gestionutilisateur' },
+            { title: 'Demandes Autorisation', icon: 'mdi-clipboard-check', to: '/app/demandeautorisation' },
+            { title: 'Presence', icon: 'mdi-account-check', to: '/app/presence' },
+            { title: 'Penalite', icon: 'mdi-gavel', to: '/app/penalite' },
+            { title: 'Absence', icon: 'mdi-account-off', to: '/app/absence' },
+            { title: 'Retard', icon: 'mdi-clock-alert', to: '/app/retard' },
+            { title: 'Horaires', icon: 'mdi-clock', to: '/app/confighoraire' },
+            { title: 'Projets', icon: 'mdi-briefcase', to: '/app/projets' },
+          ]
+        : [
+            { title: 'Congé', icon: 'mdi-calendar-account', to: '/employee/presenceparticulier' },
+            { title: 'Retard', icon: 'mdi-clock-alert', to: '/employee/retardp' },
+            { title: 'Demande autorisation', icon: 'mdi-clipboard-check', to: '/employee/demandeautorisation' },
+            { title: 'Demande congé', icon: 'mdi-calendar-clock', to: '/employee/demandeconge' },
+          ];
+    },
   },
   methods: {
     ...mapActions('auth', ['logout']),
@@ -103,30 +118,32 @@ export default {
     },
     toggleMini() {
       this.mini = !this.mini;
+      if (!this.mini) {
+        this.expandedMenuDrawer = false;
+      }
     },
     handleRailUpdate(value) {
       if (!value) {
         this.mini = false;
+        this.expandedMenuDrawer = false;
       }
-    }
-  }
-}
+    },
+    handleItemClick(item) {
+      if (item.subItems) {
+        this.selectedMenuItem = item;
+        this.expandedMenuDrawer = true;
+      } else {
+        this.expandedMenuDrawer = false;
+      }
+    },
+  },
+};
 </script>
 
 <style scoped>
 .v-list-item--active {
   background-color: rgb(var(--v-theme-primary));
   color: rgb(var(--v-theme-on-primary));
-}
-
-.submenu-item {
-  padding-left: 16px;
-}
-
-.text-wrap {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
 }
 
 .v-list-group__items .v-list-item {

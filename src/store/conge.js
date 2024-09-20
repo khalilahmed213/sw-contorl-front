@@ -104,8 +104,28 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+  
+  async toggleCongeStatus({ commit }, { id, newStatus }) {
+    commit('SET_LOADING', true);
+    try {
+      const response = await axios.put(`http://localhost:3000/api/conge/${id}`, 
+        { newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`
+          }
+        }
+      );
+      console.log(response)
+      // Optionally, you can update the local state here if needed
+    } catch (error) {
+      commit('SET_ERROR', error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
 };
-
 
 const getters = {
   getConges: state => state.conges,

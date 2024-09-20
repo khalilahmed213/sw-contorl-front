@@ -2,138 +2,141 @@
   <v-container>
     <v-card>
       <v-card-title>
-        Demandes Congés <v-spacer></v-spacer>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search by Agent"
-          single-line
-          hide-details
-        ></v-text-field>
+        <div class="d-flex justify-space-between align-center w-100">
+        <v-select
+          v-model="selectedAgent"
+          :items="allAgents"
+          item-title="name"
+          item-value="id"
+          label="Filtrer par agent"
+          clearable
+          @update:modelValue="fetch"
+          class="mr-4"
+          style="max-width: 200px;"
+        ></v-select>
+        <v-btn @click="exportToExcel" color="green" class="ml-auto">Exporter en Excel</v-btn>
+      </div>
       </v-card-title>
-      <v-data-table
+  
+      <v-data-table-server
         :headers="headers"
-        :items="filteredDemandes"
-        :search="search"
+        :items="conges"
+        :options.sync="options"
+        :items-length="totalItems"
+        :loading="loading"
         class="elevation-1"
-        :sort-by="sortBy"
-        :sort-desc="sortDesc"
+        @update:options="fetch"
       >
-        <template v-slot:item.status="{ item }">
-          <v-chip :color="getStatusColor(item.status)" dark>
-            {{ item.status }}
-          </v-chip>
-        </template>
-        <template v-slot:item.action="{ item }">
-          <v-icon
-            small
-            color="green"
-            @click="acceptDemande(item)"
-            :disabled="item.status === 'accepted'"
-          >
-            mdi-check
-          </v-icon>
-          <v-icon
-            small
-            color="red"
-            @click="declineDemande(item)"
-            :disabled="item.status === 'declined'"
-          >
-            mdi-close
-          </v-icon>
-        </template>
-      </v-data-table>
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          color="green"
+          @click="toggleStatus(item, 'accepté')"
+          :disabled="item.status !== 'en attente'"
+        >
+          mdi-check
+        </v-icon>
+        <v-icon
+          color="red"
+          @click="toggleStatus(item, 'rejeté')"
+          :disabled="item.status !== 'en attente'"
+        >
+          mdi-close
+        </v-icon>
+      </template>
+      <template v-slot:item.startDate="{ item }">
+        {{ formatDate(item.startDate) }}
+      </template>
+      <template v-slot:item.endDate="{ item }">
+        {{ formatDate(item.endDate) }}
+      </template>
+      </v-data-table-server>
     </v-card>
   </v-container>
 </template>
+
 <script>
+import { mapState, mapActions, mapGetters } from 'vuex';
+import * as XLSX from 'xlsx'; 
+
 export default {
   data() {
     return {
-      search: "",
       headers: [
         { title: "Référence", key: "reference", sortable: true },
-        { title: "Agent", key: "agent", sortable: true },
-        { title: "Date Début", key: "dateDebut", sortable: true },
-        { title: "Date Fin", key: "dateFin", sortable: true },
-        { title: "Nbr de Jour", key: "nbrJour", sortable: true },
-        { title: "Solde Congé", key: "soldeConge", sortable: true },
+        { title: "Agent", key: "User.name", sortable: true },
+        { title: "Date Début", key: "startDate", sortable: true },
+        { title: "Date Fin", key: "endDate", sortable: true },
+        { title: "Nbr de Jour", key: "nbrDeJour", sortable: true },
+        { title: "Solde Congé", key: "User.UserInfo.soldeConge", sortable: true },
         { title: "Status", key: "status", sortable: true },
-        { title: "Action", key: "action", sortable: false },
+        { title: "Action", key: "actions", sortable: false },
       ],
-      demandes: [
-        {
-          reference: "REF001",
-          agent: "John Doe",
-          dateDebut: "2023-06-01",
-          dateFin: "2023-06-10",
-          nbrJour: 10,
-          soldeConge: 20,
-          status: "pending",
-        },
-        {
-          reference: "REF002",
-          agent: "Jane Smith",
-          dateDebut: "2023-07-05",
-          dateFin: "2023-07-15",
-          nbrJour: 11,
-          soldeConge: 15,
-          status: "accepted",
-        },
-        {
-          reference: "REF003",
-          agent: "Alice Johnson",
-          dateDebut: "2023-08-10",
-          dateFin: "2023-08-20",
-          nbrJour: 11,
-          soldeConge: 12,
-          status: "declined",
-        },
-      ],
-      sortBy: [{ key: "agent", order: "desc" }],
-      sortDesc: true,
+      options: {
+        page: 1,
+        itemsPerPage: 10,
+        sortBy: '',
+        sortDesc:'',
+      },
+      selectedAgent: null,
     };
   },
+  
   computed: {
-    filteredDemandes() {
-      if (this.search) {
-        return this.demandes.filter((demande) =>
-          demande.agent.toLowerCase().includes(this.search.toLowerCase())
-        );
-      }
-      return this.demandes;
-    },
+    ...mapState('conge', ['conges', 'totalItems', 'loading']),
+    ...mapGetters("agent", ["allAgents"]),
   },
+  
   methods: {
+    ...mapActions('conge', ['fetchConges', 'toggleCongeStatus']),
+    ...mapActions({
+      fetchAllAgents: "agent/fetchAllAgents"
+    }),
     getStatusColor(status) {
       switch (status) {
-        case "accepted":
-          return "green";
-        case "declined":
-          return "red";
-        case "pending":
-          return "orange";
-        default:
-          return "grey";
+        case "accepté": return "green";
+        case "rejeté": return "red";
+        case "en attente": return "orange";
+        default: return "grey";
       }
     },
-    acceptDemande(item) {
-      item.status = "accepted";
+    
+    async toggleStatus(item, newStatus) {
+      await this.toggleCongeStatus({ id: item.id, newStatus });
+      await this.fetch(this.options)
     },
-    declineDemande(item) {
-      item.status = "declined";
+    
+    async fetch(newOptions) {
+      if (newOptions) {
+        this.options = newOptions;
+      }
+      const { page, itemsPerPage, sortBy } = this.options;
+      const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'reference';
+      const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'asc';
+      console.log( sortKey)
+      await this.fetchConges({
+        page,
+        limit: itemsPerPage,
+        sortBy: sortKey,
+        sortOrder,
+        userId: this.selectedAgent,
+      });
     },
+    
+    formatDate(date) {
+      return new Date(date).toLocaleDateString('fr-FR');
+    },
+    
+    async exportToExcel() { // New method for exporting to Excel
+      const worksheet = XLSX.utils.json_to_sheet(this.conges.map(({ id, ...rest }) => rest)); // Exclude id
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Congés');
+      XLSX.writeFile(workbook, 'conges.xlsx');
+    },
+  },
+  async mounted(){
+  },
+  async created() {
+    await this.fetchAllAgents();
   },
 };
 </script>
-<style scoped>
-.v-chip.green {
-  background-color: green !important;
-}
-.v-chip.red {
-  background-color: red !important;
-}
-.v-chip.orange {
-  background-color: orange !important;
-}
-</style>

@@ -142,7 +142,6 @@ import { mapActions, mapGetters } from "vuex";
 import * as XLSX from 'xlsx'; // Make sure to install this package: npm install xlsx
 
 export default {
-  name: "OtPenalite",
   data() {
     return {
       headers: [

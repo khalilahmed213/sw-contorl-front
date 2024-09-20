@@ -2,7 +2,8 @@
   <v-container>
     <v-card>
       <v-card-title>
-        <v-select
+        <div class="d-flex justify-space-between align-center w-100">
+          <v-select
               v-model="selectedAgent"
               :items="allAgents"
               item-title="name"
@@ -10,7 +11,12 @@
               label="Filtrer par agent"
               clearable
               @update:modelValue="fetch"
+              class="mr-2"
+              style="max-width: 200px;" 
             ></v-select>
+          
+          <v-btn @click="exportToExcel" color="green">Exporter en Excel</v-btn>
+        </div>
       </v-card-title>
       <v-data-table-server
         :headers="headers"
@@ -49,7 +55,7 @@
       </v-data-table-server>
     </v-card>
 
-    <!-- Success Snackbar -->
+   
     <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor">
       {{ snackbarMessage }}
       <template v-slot:actions>
@@ -61,6 +67,9 @@
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns'; // Import date-fns for date formatting
+import { fr } from 'date-fns/locale'; // Import French locale
 
 export default {
   data() {
@@ -112,8 +121,8 @@ export default {
           id: item.id,
           newStatus: newStatus
         });
+        await this.fetch(this.options)
         this.showSnackbar(`Autorisation ${newStatus}e avec succès`, 'success');
-        await this.fetch();
       } catch (error) {
         console.error('Failed to update autorisation status:', error);
         this.showSnackbar('Erreur lors de la mise à jour du statut', 'error');
@@ -145,10 +154,27 @@ export default {
         agentId: this.selectedAgent,
       });
     },
+    
+    // Modify exportToExcel to exclude createdAt and updatedAt and follow header order
+    exportToExcel() {
+      const modifiedData = this.autorisations.map(item => ({
+        référence: item.référence, // Include reference
+        User: item.User.name, // Replace user id with user name
+        date: format(new Date(item.date), 'dd/MM/yyyy', { locale: fr }), // Format date
+        heureDebut: item.heureDebut, // Include start time
+        heureFin: item.heureFin, // Include end time
+        nbrheures: item.nbrheures, // Include number of hours
+        status: item.status, // Include status
+      }));
+      const worksheet = XLSX.utils.json_to_sheet(modifiedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Autorisations');
+      XLSX.writeFile(workbook, 'autorisations.xlsx');
+    },
   },
  
-  created() {
-   this.fetchAllAgents();
+ async created() {
+   await this.fetchAllAgents();
   },
 };
 </script>

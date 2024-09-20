@@ -140,7 +140,9 @@ export default {
   },
   methods: {
     ...mapActions('conge', ['fetchConges', 'createConge', 'updateConge', 'deleteConge','fetchUserConges']),
-    
+    ...mapActions({
+      fetchAllAgents: "agent/fetchAllAgents"
+    }),
     async fetchConges(newOptions) {
       if (newOptions) {
         this.options = newOptions;
@@ -226,12 +228,12 @@ export default {
 
     getStatusColor(status) {
       switch (status.toLowerCase()) {
-        case 'approuvée':
+        case 'accepté': // Updated case for accepted status
           return 'green';
-        case 'rejetée':
+        case 'rejeté': // Confirmed red for rejected status
           return 'red';
-        case 'en attente':
-          return 'orange';
+        case 'en attente': // Confirmed yellow for pending status
+          return 'yellow'; // Changed to yellow
         default:
           return 'grey';
       }
