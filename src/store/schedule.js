@@ -31,9 +31,6 @@ const mutations = {
   setLoading(state, loading) {
     state.loading = loading; // Added loading mutation
   },
-  ADD_SCHEDULE(state, schedule) {
-    state.schedules.push(schedule);
-  },
   UPDATE_SCHEDULE(state, updatedSchedule) {
     const index = state.schedules.findIndex(schedule => schedule.id === updatedSchedule.id);
     if (index !== -1) {
@@ -85,7 +82,7 @@ const actions = {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
-      commit('ADD_SCHEDULE', response.data.data); // Adjusted to use response.data.data
+       // Adjusted to use response.data.data
       return { success:response.data, message: response.data.message }; // Return success message
     } catch (error) {
       return { success: error.response.data.success, message: error.response.data.message };

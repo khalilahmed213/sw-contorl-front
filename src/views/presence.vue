@@ -12,24 +12,8 @@
       :clearable="false"
       class="mb-8"
     />
-    <div v-if="!horaire && bool === false" class="d-flex justify-center align-center">
-      <v-card class="elevation-3 pa-5" max-width="400">
-        <v-card-title class="text-h5 font-weight-bold justify-center">
-          Pas de pointage disponible
-        </v-card-title>
-        <v-card-subtitle class="text-h6 text-center mt-2 mb-4">
-          Enregistrer
-        </v-card-subtitle>
-        <v-card-actions class="justify-center">
-          <v-btn icon color="primary" @click="dialoghoraire = true" class="btn-lg">
-            <v-icon size="48">mdi-plus</v-icon>
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </div>
   </div>
  
-    <div v-if="!horaire&&bool===true||horaire">
       <div v-if=" isScheduleRecurring">
         <v-data-table-server
           :headers="headersRecurring"
@@ -145,8 +129,7 @@
           </template>
         </v-data-table-server>
       </div>
-    </div>
-   
+  
     
     <v-dialog v-model="dialog">
       <v-card>
@@ -217,30 +200,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialoghoraire" max-width="500px">
-      <v-card>
-        <v-card-title>choisi un horaire</v-card-title>
-        <v-card-text>
-          <v-select
-            v-model="changeschedule"
-            :items="getSchedules"
-            item-title="name"
-            item-value="id"
-            label="choisi un horaire"
-          ></v-select>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn
-            color="primary"
-            @click="saveSchedule"
-            :disabled="!changeschedule"
-          >
-            enregistrer
-          </v-btn>
-          <v-btn @click="dialoghoraire = false"> annuler </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+   
   
 
 </template>
@@ -256,7 +216,6 @@ export default {
   },
   data() {
     return {
-      bool: false,
       headersRecurring: [
         { title: "Agent", key: "Agent" },
         { title: "Environnement", key: "environnement" },
@@ -434,12 +393,7 @@ export default {
       this.dialog = false;
       this.editedIndex = -1;
     },
-    async saveSchedule() {
-      await this.toggleSelected(this.changeschedule);
-      await this.fetchSelectedSchedule();
-      this.bool = true;
-      this.dialoghoraire = false;
-    },
+  
     formatDate(date) {
       const day = date.getDate();
       const month = date.getMonth() + 1;
@@ -449,7 +403,7 @@ export default {
     },
     async handleDate() {
         await this.fetchPresenceAndAbsence(this.options);
-        this.bool=false
+       
     },
   },
   async fetch(newOptions) {

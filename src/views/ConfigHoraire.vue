@@ -228,21 +228,26 @@
           <template v-slot:item.checkbox="{ item }">
             <v-checkbox
               v-model="item.isSelected"
-              @change="toggleSelectedvue(item)"
-              :disabled="item.isSelected"
+              :disabled="item.isSelected||item"
             ></v-checkbox>
           </template>
           <template v-slot:item.schedule="{ item }">
-            <div v-if="item.isRecurring">
+            <div v-if="item.isRecurring&&item.startDate!=null&&item.endDate!=null">
               <span>
                 Date début: {{ item.startDate }} à Date fin: {{ item.endDate }}<br>
                 Heure Début: {{ item.morningStart }} - Heure Fin: {{ item.afternoonEnd }} - 
                 Pause: {{ item.breakStart }} à {{ item.breakEnd }}
               </span>
             </div>
-            <div v-else>
+            <div v-if="!item.isRecurring">
               <span>
                 Date début: {{ item.startDate }} à Date fin: {{ item.endDate }}<br>
+                Heure Début: {{ item.morningStart }} - Heure Fin: {{ item.morningEnd }} - sans Pause
+              </span>
+            </div>
+            <div v-if="item.startDate===null&&item.endDate===null">
+              <span>
+                Horaire Par Défaut
                 Heure Début: {{ item.morningStart }} - Heure Fin: {{ item.morningEnd }} - sans Pause
               </span>
             </div>
@@ -313,12 +318,11 @@ export default {
         afternoonStart: "",
         afternoonEnd: "",
         isRecurring: true,
-        isSelected: false,
       },
       isFormValid: false,
       load: null,
       headers: [
-        { title: "Checkbox", key: "checkbox", sortable: false },
+        { title: "Horaire sélectionné", key: "checkbox", sortable: false },
         { title: "Nom de l'Horaire", align: "start", key: "name" },
         { title: "Horaires", align: "start", key: "schedule" },
         { title: "Actions", key: "actions", sortable: false },
@@ -384,7 +388,6 @@ export default {
         afternoonStart: "",
         afternoonEnd: "",
         isRecurring: true,
-        isSelected: false,
       };
       this.bool = true;
       this.editedIndex = -1;
@@ -407,16 +410,7 @@ export default {
       await this.fetchSchedules();
       this.showSnackbar(this.response.message, this.response.success ? 'success' : 'error');
     },
-    async toggleSelectedvue(item) {
-      try {
-        await this.toggleSelected(item.id);
-        await this.fetchSchedules();
-        this.load = true;
-        this.showPopup(item);
-      } catch (error) {
-        console.error("Error toggling isSelected:", error);
-      }
-    },
+   
     showSnackbar(message, color = 'success') {
       this.snackbar.message = message;
       this.snackbar.color = color;
