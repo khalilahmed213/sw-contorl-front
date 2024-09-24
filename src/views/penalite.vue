@@ -326,8 +326,7 @@ export default {
   },
   async created() {
     await this.fetchAllAgents(); // Adjust these values as needed
-    await this.fetchSchedules();
-    await this.loadItems(this.options); // Initial load of items
+    await this.fetchSchedules(); // Initial load of items
   },
   mounted(){
   },

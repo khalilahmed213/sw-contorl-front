@@ -13,10 +13,9 @@
       class="mb-8"
     />
   </div>
- 
-      <div v-if=" isScheduleRecurring">
+      
         <v-data-table-server
-          :headers="headersRecurring"
+          :headers="isScheduleRecurring ? headersRecurring : headersRamadan"
           :items="todayPresenceAndAbsence"
           :options.sync="options"
           :server-items-length="totalItems"
@@ -74,61 +73,8 @@
             >
           </template>
         </v-data-table-server>
-      </div>
-      <div v-if="! isScheduleRecurring">
-        <v-data-table-server
-          :headers="headersRamadan"
-          :items="todayPresenceAndAbsence"
-          :options.sync="options"
-          :server-items-length="totalItems"
-           @update:options="fetch"
-          :loading="loading"
-          class="elevation-1"
-        >
-          <template v-slot:headerColspan>
-            <th colspan="3"></th>
-            <th colspan="4">Shift Ramadan</th>
-          </template>
-
-          <template v-slot:item.Agent="{ item }">
-            {{ item.Agent }}
-          </template>
-          <template v-slot:item.environnement="{ item }">
-            <v-select
-              v-model="item.environnement"
-              :items="['Onsite', 'Remote', 'Hybrid']"
-            ></v-select>
-          </template>
-          <template v-slot:item.absence="{ item }">
-            <v-select
-              v-model="item.absence"
-              :items="['Présent', 'Absent']"
-            ></v-select>
-          </template>
-          <template v-slot:item.entree="{ item }">
-            {{ item.entree }}
-          </template>
-          <template v-slot:item.sortie="{ item }">
-            {{ item.sortie }}
-          </template>
-          <template v-slot:item.prod="{ item }">
-            {{ item.prod }}
-          </template>
-          <template v-slot:item.commentaires="{ item }">
-            {{ item.commentaires }}
-          </template>
-          <template v-slot:item.actions="{ item, index }">
-            <v-icon
-              v-if="item.absence != 'N/A' && item.commentaires !== 'N/A'"
-              @click="openDialog('edit', index)"
-              >mdi-pencil</v-icon
-            >
-            <v-icon v-else @click="openDialog('add', index)"
-              >mdi-plus-box</v-icon
-            >
-          </template>
-        </v-data-table-server>
-      </div>
+     
+      
   
     
     <v-dialog v-model="dialog">
@@ -323,10 +269,8 @@ export default {
     },
     isScheduleRecurring() {
     if (!this.horaire) {
-      // If horaire is true, fallback to selectedschedule.isRecurring if it exists
       return this.selectedschedule ? this.selectedschedule.isRecurring : false;
     } else {
-      // If horaire is false, use isRecuring from the store
       return this.isRecuring;
     }
   },
@@ -337,7 +281,6 @@ export default {
       "fetchPresenceAndAbsence",
       "updatePresence",
       "addPresence",
-      "checkscheduleanddelete",
     ]),
     ...mapActions(["fetchSchedules", "toggleSelected"]),
 
@@ -402,34 +345,34 @@ export default {
       return `${day}/${month}/${year}`;
     },
     async handleDate() {
-        await this.fetchPresenceAndAbsence(this.options);
-       
+      await this.fetch(this.options)  
     },
-  },
+ 
   async fetch(newOptions) {
       if (newOptions) {
-        this.options = newOptions;
+        this.options.page = newOptions.page;
+        this.options.itemsPerPage=newOptions.itemsPerPage
+        this.options.sortBy=newOptions.sortBy
       }
-      const { page, itemsPerPage, sortBy} = this.options;
+      const {dateselect, page, itemsPerPage, sortBy} = this.options;
       const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : "name";
       const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : "asc";
-
       await this.fetchPresenceAndAbsence({
-        dateselect:this.options.dateselect,
+        dateselect:dateselect,
         page: page,
-        limit: itemsPerPage,
+        itemsPerPage: itemsPerPage,
         sortBy: sortKey,
-        sortDesc: sortOrder === "desc",
+        sortDesc:sortOrder,
       });
+      
     },
+  },
   async created() {
     await this.fetchSelectedSchedule();
-    await this.checkscheduleanddelete(this.selectedschedule.id);
     await this.fetchSchedules();
+    this.options.dateselect = new Date();
   },
   async mounted() {
-   
-    await this.fetchPresenceAndAbsence(this.options);
   },
 };
 </script>

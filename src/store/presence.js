@@ -23,11 +23,12 @@ const actions = {
 
     try {
       const response = await axios.get('http://localhost:3000/api/presence/fetch', {
-        params: { dateselect, page, itemsPerPage, sortBy, sortDesc },
+        params: { dateselect, page,itemsPerPage, sortBy, sortDesc },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
+    
       commit('setTodayPresenceAndAbsence', response.data.data);
       commit('sethoraire', response.data.recordsFound);
       commit('setisRecuring', response.data.isRecurring);
@@ -62,20 +63,7 @@ const actions = {
       throw error;
     }
   },
-  async checkscheduleanddelete({ commit }, scheduleId) {
-    try {
-      await axios.delete('http://localhost:3000/api/checkScheduleanddelete', {
-        data: { scheduleId }, // Use `data` to send the request body in a DELETE request
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
-      });
-      // Perform any additional actions like committing a mutation
-    } catch (error) {
-      console.error('Error deleting records:', error);
-      // Handle the error appropriately, e.g., commit a mutation to update the state
-    }
-}
+ 
 }
 
 const mutations = {
