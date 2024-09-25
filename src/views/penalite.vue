@@ -266,8 +266,8 @@ export default {
     async deleteItem() {
       if (this.itemToDelete) {
         await this.deletePenalite(this.itemToDelete);
-        await this.loadItems(this.options);
         this.showSnackbar('Pénalité supprimée avec succès');
+        await this.loadItems(this.options);
       }
       this.deleteDialog = false;
       this.itemToDelete = null;

@@ -49,6 +49,9 @@
       <template v-slot:item.endDate="{ item }">
         {{ formatDate(item.endDate) }}
       </template>
+      <template v-slot:item.status="{ item }">
+        <v-chip :color="getStatusColor(item.status)" dark>{{ item.status }}</v-chip>
+      </template>
       </v-data-table-server>
     </v-card>
   </v-container>
@@ -93,10 +96,10 @@ export default {
     }),
     getStatusColor(status) {
       switch (status) {
-        case "accepté": return "green";
-        case "rejeté": return "red";
-        case "en attente": return "orange";
-        default: return "grey";
+        case "accepté": return "green"; // Green for accepted
+        case "rejeté": return "red"; // Red for rejected
+        case "en attente": return "orange"; // Orange for pending
+        default: return "grey"; // Default color
       }
     },
     

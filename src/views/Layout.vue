@@ -13,31 +13,36 @@
       <v-divider></v-divider>
 
       <v-list density="compact" nav>
-        <v-list-item
-          v-for="item in menuItems"
-          :key="item.title"
-          :to="item.to"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          @click="handleItemClick(item)"
-        ></v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+        <template v-for="item in menuItems" :key="item.title">
+          <v-list-group
+            v-if="item.subItems"
+            :value="item.title"
+            :active="isActive(item)"
+          >
+            <template v-slot:activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                :prepend-icon="item.icon"
+                :title="item.title"
+              ></v-list-item>
+            </template>
 
-    <v-navigation-drawer
-      v-model="expandedMenuDrawer"
-      temporary
-      location="left"
-      width="300"
-    >
-      <v-list>
-        <v-list-item
-          v-for="subItem in selectedMenuItem.subItems"
-          :key="subItem.title"
-          :to="subItem.to"
-          :prepend-icon="subItem.icon"
-          :title="subItem.title"
-        ></v-list-item>
+            <v-list-item
+              v-for="subItem in item.subItems"
+              :key="subItem.title"
+              :to="subItem.to"
+              :prepend-icon="subItem.icon"
+              :title="subItem.title"
+            ></v-list-item>
+          </v-list-group>
+
+          <v-list-item
+            v-else
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="item.title"
+          ></v-list-item>
+        </template>
       </v-list>
     </v-navigation-drawer>
 
@@ -68,8 +73,6 @@ export default {
     return {
       drawer: true,
       mini: false,
-      expandedMenuDrawer: false,
-      selectedMenuItem: { subItems: [] },
     };
   },
   computed: {
@@ -118,23 +121,20 @@ export default {
     },
     toggleMini() {
       this.mini = !this.mini;
-      if (!this.mini) {
-        this.expandedMenuDrawer = false;
-      }
     },
     handleRailUpdate(value) {
       if (!value) {
         this.mini = false;
-        this.expandedMenuDrawer = false;
       }
     },
-    handleItemClick(item) {
-      if (item.subItems) {
-        this.selectedMenuItem = item;
-        this.expandedMenuDrawer = true;
-      } else {
-        this.expandedMenuDrawer = false;
+    isActive(item) {
+      if (item.to) {
+        return this.$route.path.startsWith(item.to);
       }
+      if (item.subItems) {
+        return item.subItems.some(subItem => this.$route.path.startsWith(subItem.to));
+      }
+      return false;
     },
   },
 };
@@ -148,5 +148,9 @@ export default {
 
 .v-list-group__items .v-list-item {
   min-height: 40px;
+}
+
+.v-list-group--active > .v-list-item {
+  background-color: rgba(var(--v-theme-primary), 0.1);
 }
 </style>

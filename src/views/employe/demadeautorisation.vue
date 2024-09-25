@@ -126,11 +126,11 @@ export default {
       valid: false,
       formError: null,
       headers: [
+      { title: 'Référence', key: 'référence' },
         { title: 'Date', key: 'date' },
         { title: 'Heure de Début', key: 'heureDebut' },
         { title: 'Heure de Fin', key: 'heureFin' },
         { title: "nbr d'heures", key: 'nbrheures' },
-        { title: 'Référence', key: 'référence' },
         { title: 'Status', key: 'status' },
         { title: 'Actions', key: 'actions', sortable: false },
       ],

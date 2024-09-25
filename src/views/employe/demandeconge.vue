@@ -233,7 +233,7 @@ export default {
         case 'rejeté': // Confirmed red for rejected status
           return 'red';
         case 'en attente': // Confirmed yellow for pending status
-          return 'yellow'; // Changed to yellow
+          return 'orange'; // Changed to yellow
         default:
           return 'grey';
       }
