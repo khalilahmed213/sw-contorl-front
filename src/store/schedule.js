@@ -123,9 +123,9 @@ const actions = {
       commit('setLoading', false); 
     }
   },
-  async toggleSelected({ commit }, scheduleId) {
+  async toggleSelected({ commit }, ScheduleId) {
     try {
-      await axios.put(`http://localhost:3000/api/schedules/toggle-selected/${scheduleId}`,{}, {
+      await axios.put(`http://localhost:3000/api/schedules/toggle-selected/${ScheduleId}`,{}, {
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }
@@ -137,11 +137,11 @@ const actions = {
       throw error;
     }
   },
-  async checkIfScheduleIsRecurring({ commit }, scheduleId) {
+  async checkIfScheduleIsRecurring({ commit }, ScheduleId) {
     try {
       const response = await axios.get(`http://localhost:3000/api/schedules/getrecuring`, {
         params: {
-          id: scheduleId,
+          id: ScheduleId,
         },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`

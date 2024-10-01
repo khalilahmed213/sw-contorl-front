@@ -14,7 +14,10 @@
           class="mr-4"
           style="max-width: 200px;"
         ></v-select>
-        <v-btn @click="exportToExcel" color="green" class="ml-auto">Exporter en Excel</v-btn>
+        <v-btn color="success" @click="exportToExcel">
+            <v-icon left>mdi-file-excel</v-icon>
+            Exporter Excel
+          </v-btn>
       </div>
       </v-card-title>
   
@@ -121,7 +124,7 @@ export default {
         limit: itemsPerPage,
         sortBy: sortKey,
         sortOrder,
-        userId: this.selectedAgent,
+        UserId: this.selectedAgent,
       });
     },
     

@@ -90,11 +90,11 @@ const actions = {
     }
   },
 
-  async fetchUserAutorisations({ commit }, { userId, page, limit, sortBy, sortOrder }) {
+  async fetchUserAutorisations({ commit }, { UserId, page, limit, sortBy, sortOrder }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get(`http://localhost:3000/api/autorisation`, {
-        params: { page, limit, sortBy, sortOrder ,userId},
+        params: { page, limit, sortBy, sortOrder ,UserId},
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }

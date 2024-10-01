@@ -138,16 +138,16 @@ export default {
         date: '',
         heureDebut: '',
         heureFin: '',
-        userId: '',
+        UserId: '',
       },
       defaultItem: {
         date: '',
         heureDebut: '',
         heureFin: '',
-        userId: '',
+        UserId: '',
       },
       options: {
-        userId: this.currentUserId,
+        UserId: this.currentUserId,
         page: 1,
         sortBy: [],
         sortDesc: [],
@@ -184,7 +184,7 @@ export default {
       const sortOrder = sortBy && sortBy.length > 0  ? sortBy[0].order : 'asc';
 
       await this.fetchUserAutorisations({
-        userId: this.currentUserId,
+        UserId: this.currentUserId,
         page,
         limit: itemsPerPage,
         sortBy: sortKey,
@@ -193,7 +193,7 @@ export default {
     },
 
     openAddDialog() {
-      this.editedItem = { ...this.defaultItem, userId: this.currentUserId };
+      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId };
       this.dialog = true;
     },
 
@@ -293,7 +293,7 @@ export default {
                 date: this.editedItem.date,
                 heureDebut: this.editedItem.heureDebut,
                 heureFin: this.editedItem.heureFin,
-                userId: this.currentUserId
+                UserId: this.currentUserId
               }
             });
            
@@ -303,7 +303,7 @@ export default {
               date: this.editedItem.date,
               heureDebut: this.editedItem.heureDebut,
               heureFin: this.editedItem.heureFin,
-              userId: this.currentUserId
+              UserId: this.currentUserId
             });
             this.showSnackbar('Autorisation ajoutée avec succès', 'success');
           }

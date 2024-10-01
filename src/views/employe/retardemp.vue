@@ -72,7 +72,7 @@
 <script>
 export default {
   props: {
-    userId: {
+    UserId: {
       type: Number,
       required: true,
     },

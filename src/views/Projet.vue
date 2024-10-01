@@ -7,10 +7,9 @@
             <v-icon left>mdi-plus</v-icon>
             Ajouter Projet
           </v-btn>
-          <v-btn color="success" @click="exportToExcel">
-            <v-icon left>mdi-file-excel</v-icon>
-            Exporter Excel
-          </v-btn>
+          <v-btn @click="exportToExcel" class="ml-auto" color="green"
+          >Export Excel</v-btn
+        >
         </div>
         <v-text-field
           v-model="search"
@@ -174,7 +173,6 @@
 </template>
 
 <script>
-import { toRaw } from "vue";
 import { mapGetters, mapActions } from "vuex";
 import debounce from "lodash/debounce";
 import * as XLSX from 'xlsx';

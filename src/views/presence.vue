@@ -201,8 +201,8 @@ export default {
       dialog: false,
       editedIndex: -1,
       editedItem: {
-        scheduleId: "",
-        userId: "",
+        ScheduleId: "",
+        UserId: "",
         environnement: "",
         absence: "",
         entree: "",
@@ -290,15 +290,15 @@ export default {
         this.editedIndex = index;
         this.editedItem = {
           ...this.todayPresenceAndAbsence[index],
-          scheduleId: this.selectedschedule.id,
+          ScheduleId: this.selectedschedule.id,
           createdAtdate: this.options.dateselect,
         };
       } else if (mode === "add") {
         this.editedIndex = index;
         this.editedItem = {
           Agent: this.todayPresenceAndAbsence[index].Agent,
-          userId: this.todayPresenceAndAbsence[index].userId,
-          scheduleId: this.selectedschedule.id,
+          UserId: this.todayPresenceAndAbsence[index].UserId,
+          ScheduleId: this.selectedschedule.id,
           environnement: this.todayPresenceAndAbsence[index].environnement,
           absence: this.todayPresenceAndAbsence[index].absence,
           entree: this.todayPresenceAndAbsence[index].entree,

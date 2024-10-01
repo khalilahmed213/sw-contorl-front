@@ -248,7 +248,7 @@
             <div v-if="item.startDate===null&&item.endDate===null">
               <span>
                 Horaire Par Défaut
-                Heure Début: {{ item.morningStart }} - Heure Fin: {{ item.morningEnd }} - sans Pause
+                Heure Début: {{ item.morningStart }} - Heure Fin: {{ item.morningEnd }} -Pause: {{ item.breakStart }} à {{ item.breakEnd }}
               </span>
             </div>
           </template>

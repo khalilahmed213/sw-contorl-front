@@ -27,11 +27,11 @@ const mutations = {
 };
 
 const actions = {
-  async fetchConges({ commit }, { page, limit, sortBy, sortOrder, userId }) {
+  async fetchConges({ commit }, { page, limit, sortBy, sortOrder, UserId }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/conges', {
-        params: { page, limit, sortBy, sortOrder, userId },
+        params: { page, limit, sortBy, sortOrder, UserId },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }
@@ -88,11 +88,11 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
-  async fetchUserConges({ commit }, { userId, page, limit, sortBy, sortOrder }) {
+  async fetchUserConges({ commit }, { UserId, page, limit, sortBy, sortOrder }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get(`http://localhost:3000/api/conge`, {
-        params: { page, limit, sortBy, sortOrder ,userId},
+        params: { page, limit, sortBy, sortOrder ,UserId},
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }

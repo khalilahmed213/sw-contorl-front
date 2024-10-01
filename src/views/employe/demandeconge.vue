@@ -112,7 +112,7 @@ export default {
         endDate: '',
         raison: '',
         status: '',
-        userId: this.currentUserId, // Add userId
+        UserId: this.currentUserId, // Add UserId
       },
       defaultItem: {
         startDate: '',
@@ -155,13 +155,13 @@ export default {
         limit: itemsPerPage,
         sortBy: sortKey,
         sortOrder,
-        userId: this.currentUserId,
+        UserId: this.currentUserId,
       });
       
     },
 
     openAddDialog() {
-      this.editedItem = { ...this.defaultItem, userId: this.currentUserId };
+      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId };
       this.dialog = true;
     },
 

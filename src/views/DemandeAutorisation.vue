@@ -15,7 +15,9 @@
               style="max-width: 200px;" 
             ></v-select>
           
-          <v-btn @click="exportToExcel" color="green">Exporter en Excel</v-btn>
+            <v-btn @click="exportToExcel" class="ml-auto" color="green"
+          >Export Excel</v-btn
+        >
         </div>
       </v-card-title>
       <v-data-table-server
@@ -176,6 +178,9 @@ export default {
  async created() {
    await this.fetchAllAgents();
   },
+  mounted(){
+    console.log(this.autorisations)
+  }
 };
 </script>
 

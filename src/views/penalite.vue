@@ -20,13 +20,14 @@
             <v-btn color="primary" @click="openAddDialog">Ajouter Pénalité</v-btn>
           </v-col>
           <v-col cols="auto">
-            <v-btn color="success" @click="exportToExcel">Exporter Excel</v-btn>
+            <v-btn @click="exportToExcel" class="ml-auto" color="green"
+          >Export Excel</v-btn
+        >
           </v-col>
         </v-row>
       </v-card-title>
       <v-card-content>
         <v-data-table-server
-          v-model:items-per-page="itemsPerPage"
           :headers="headers"
           :items="allPenalites"
           :items-length="totalPenalites"
@@ -223,7 +224,7 @@ export default {
         startDate: new Date(item.startDate).toISOString().split('T')[0],
         endDate: new Date(item.endDate).toISOString().split('T')[0],
         raison: item.raison,
-        UserId: item.userId,
+        UserId: item.UserId,
         ScheduleId: item.ScheduleId,
       };
       // Force Vue to re-render the select component

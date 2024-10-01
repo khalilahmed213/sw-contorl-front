@@ -3,9 +3,9 @@
     <v-card elevation="1">
       <v-row align="center" class="mb-4">
         <v-col cols="6" class="text-left">
-          <v-btn color="secondary" @click="exportTableToExcel">
-            Exporter en Excel
-          </v-btn>
+          <v-btn @click="exportToExcel" class="ml-auto" color="green"
+          >Export Excel</v-btn
+        >
         </v-col>
         <v-col cols="6" class="text-right">
           <v-btn color="primary" @click="openDialog('add')">
@@ -82,7 +82,7 @@
                 ]"
               ></v-text-field>
               <v-text-field
-                v-model="editedAgent.months"
+                v-model="editedAgent.UserInfo.months"
                 label="Nombre de mois"
                 type="number"
                 :rules="[
@@ -103,8 +103,8 @@
                 :rules="[
                   (v) => !!v || 'Numéro de téléphone requis',
                   (v) =>
-                    /^\d{13}$/.test(v) ||
-                    'Numéro de téléphone invalide (10 chiffres)',
+                    /^\d{8}$/.test(v) ||
+                    'Numéro de téléphone invalide (8 chiffres)',
                 ]"
               ></v-text-field>
               <v-text-field
@@ -201,7 +201,9 @@ export default {
         name: "",
         email: "",
         password: "",
-        months: 0,
+        UserInfo: {
+        months: ""
+    },
         phoneNumber: "",
         address: "",
         role: "employe",
@@ -240,8 +242,6 @@ export default {
         this.options = newOptions;
       }
       const { page, itemsPerPage, sortBy, sortDesc } = this.options;
-
-      // Adjusting to handle the new structure of sortBy
       const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'name';
       const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'asc';
 
@@ -264,7 +264,8 @@ export default {
         if (action === "view") {
           this.viewedAgent = { ...agent };
         } else {
-          this.editedAgent = { ...agent, password: "" };
+          this.editedAgent = { ...agent };
+          console.log(this.editedAgent)
         }
       } else if ((action === "edit" || action === "view") && !agent) {
         console.error(`Attempted to ${action} an undefined agent`);
@@ -283,7 +284,7 @@ export default {
         if (this.editedAgent.id) {
           try {
             const agentToUpdate = { ...this.editedAgent };
-            delete agentToUpdate.password; // Exclude password from update
+            delete agentToUpdate.password;
             await this.$store.dispatch('agent/updateAgent', agentToUpdate);
             this.fetchAgents();
             this.closeDialog();
