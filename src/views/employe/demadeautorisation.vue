@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapActions,mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -139,6 +139,7 @@ export default {
         heureDebut: '',
         heureFin: '',
         UserId: '',
+        ScheduleId:''
       },
       defaultItem: {
         date: '',
@@ -160,6 +161,7 @@ export default {
   },
   computed: {
     ...mapState('autorisation', ['autorisations', 'totalItems', 'loading']),
+    ...mapGetters('schedule',['scheduleSelected']),
     ...mapState('auth', ['user']),
     formTitle() {
       return this.editedItem.id ? 'Modifier Autorisation' : 'Nouvelle Autorisation';
@@ -173,6 +175,7 @@ export default {
   },
   methods: {
     ...mapActions('autorisation', ['fetchUserAutorisations', 'createAutorisation', 'updateAutorisation', 'deleteAutorisation']),
+    ...mapActions('schedule', ['fetchSelectedSchedule']),
     
     async fetchAutorisations(newOptions) {
       if (newOptions) {
@@ -193,7 +196,7 @@ export default {
     },
 
     openAddDialog() {
-      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId };
+      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId ,ScheduleId:this.scheduleSelected};
       this.dialog = true;
     },
 
@@ -310,7 +313,6 @@ export default {
           this.closeDialog();
           await this.fetchAutorisations(this.options);
         } catch (error) {
-          console.error('Échec de l\'enregistrement de l\'autorisation:', error);
           this.showSnackbar('Erreur lors de l\'enregistrement de l\'autorisation', 'error');
         }
       }
@@ -366,9 +368,8 @@ export default {
       return item.status.toLowerCase() === 'en attente';
     },
   },
-
-  created() {
-    console.log(this.autorisations);
+  async mounted() {
+    await this.fetchSelectedSchedule()
   },
 };
 </script>

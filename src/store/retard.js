@@ -24,9 +24,9 @@ const actions = {
           Authorization: `Bearer ${getAccessToken()}`,
         },
       });
-     
-      commit('SET_RETARDS', response.data.tardinessData);
-      commit('SET_TOTAL', response.data.totalPages);
+     console.log(response.data)
+      commit('SET_RETARDS', response.data.records);
+      commit('SET_TOTAL', response.data.totalRecords);
     } catch (error) {
       console.error('Error fetching retard:', error);
     } finally {

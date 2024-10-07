@@ -73,7 +73,6 @@ export default {
         { title: "Date Début", key: "startDate", sortable: true },
         { title: "Date Fin", key: "endDate", sortable: true },
         { title: "Nbr de Jour", key: "nbrDeJour", sortable: true },
-        { title: "Solde Congé", key: "User.UserInfo.soldeConge", sortable: true },
         { title: "Status", key: "status", sortable: true },
         { title: "Action", key: "actions", sortable: false },
       ],

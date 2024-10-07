@@ -1,25 +1,43 @@
 <template>
-  <v-container>
-    <v-data-table
-      :headers="headers"
-      :items="filteredItems"
-      class="elevation-1"
-      :search="search"
-    >
-      <template v-slot:top>
-        <v-toolbar flat>
-          <v-toolbar-title>Fiche Congé 2024</v-toolbar-title>
-          <v-divider class="mx-4" inset vertical></v-divider>
-          <v-text-field
-            v-model="search"
-            append-icon="mdi-magnify"
-            label="Rechercher par NOM PRENOM"
-            single-line
-            hide-details
-          ></v-text-field>
-        </v-toolbar>
-      </template>
-    </v-data-table>
+<v-card>
+      <v-card-title class="d-flex justify-start align-center">
+        <!-- Changed to justify-start -->
+        <v-select
+          v-model="options.selectedMonth"
+          :items="months"
+          @update:modelValue="fetch"
+          label="filtrer un mois"
+          clearable
+          class="mx-4"
+          item-value="value"
+          style="max-width: 200px"
+        ></v-select>
+        <v-select
+          v-model="options.selectedAgent"
+          :items="allAgents"
+          item-title="name"
+          item-value="id"
+          label="Filtrer par agent"
+          clearable
+          @update:modelValue="fetch"
+          class="mr-2"
+          style="max-width: 200px"
+        ></v-select>
+        <v-btn @click="exportToExcel" class="ml-auto" color="green"
+          >Export Excel</v-btn
+        >
+        <!-- Added export button -->
+      </v-card-title>
+      <v-data-table-server
+          :headers="headers"
+          :items="CongeData"
+          :options.sync="options"
+          :items-length="pagination.totalItems"
+          :loading="loading"
+          class="elevation-1"
+          @update:options="fetch"
+        >
+        </v-data-table-server>
 
     <v-table>
       <thead>
@@ -35,10 +53,12 @@
         </tr>
       </tbody>
     </v-table>
-  </v-container>
+  </v-card>
 </template>
 
 <script>
+import { mapActions, mapGetters } from "vuex";
+import * as XLSX from 'xlsx';
 export default {
   data() {
     return {
@@ -46,39 +66,89 @@ export default {
       headers: [
         { title: 'Agent', key: 'name' },
         { title: 'Nb Mois effectué', key: 'monthsDone' },
-        { title: 'SOLDE CONGE', key: 'leaveBalance' },
-        { title: 'CONGE PRISE', key: 'leaveTaken' },
+        { title: 'SOLDE CONGE', key: 'SOLDECONGE' },
+        { title: 'CONGE PRISE', key: 'CONGEPRISE' },
         { title: 'Sanction', key: 'sanction' },
-        { title: 'RESTE CONGE', key: 'remainingLeave' },
-        { title: 'Rest ancien congé', key: 'oldLeave' }
+        { title: 'RESTE CONGE', key: 'RESTCONGE' },
+        { title: 'Rest ancien congé', key: 'RESTANCIENCONGE' }
       ],
-      items: [
-        { name: 'AHMED BOUZID', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 1, remainingLeave: 10, oldLeave: null },
-        { name: 'AYMEN DIMASSI', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 11, oldLeave: null },
-        { name: 'MED THABET BEN AICHA', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 1, remainingLeave: 10, oldLeave: null },
-        { name: 'MERIEM MAAMRI', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null },
-        { name: 'AHMED BEN SALEM', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null },
-        { name: 'SIWAR LAHMER', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 11, oldLeave: null },
-        { name: 'LOUAY BELTIFA', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null },
-        { name: 'SOFIENE FATHALLAH', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null },
-        { name: 'ISLEM CHAMBAH', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 11, oldLeave: null },
-        { name: 'JIHENE HANI', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 11, oldLeave: null },
-        { name: 'Nihel bouzid', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null },
-        { name: 'rawia nemria', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 11, oldLeave: null },
-        { name: 'Dhaker Sghaier', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null },
-        { name: 'Yosr Sassi', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 11, oldLeave: null },
-        { name: 'Safa Zouiat', monthsDone: 6, leaveBalance: 11, leaveTaken: 0, sanction: 0, remainingLeave: 10, oldLeave: null }
-      ]
+      months: [
+        { title: "Janvier", value: 1 },
+        { title: "Février", value: 2 },
+        { title: "Mars", value: 3 },
+        { title: "Avril", value: 4 },
+        { title: "Mai", value: 5 },
+        { title: "Juin", value: 6 },
+        { title: "Juillet", value: 7 },
+        { title: "Août", value: 8 },
+        { title: "Septembre", value: 9 },
+        { title: "Octobre", value: 10 },
+        { title: "Novembre", value: 11 },
+        { title: "Décembre", value: 12 },
+      ],
+      options: {
+        page: 1,
+        itemsPerPage: 10,
+        sortBy: ["date"],
+        sortDesc: [true],
+        selectedAgent: "",
+        selectedMonth: "",
+      },
     };
   },
   computed: {
-    filteredItems() {
-      // Filtering items based on search query
-      return this.items.filter(item =>
-        item.name.toLowerCase().includes(this.search.toLowerCase())
-      );
-    }
-  }
+    ...mapGetters("agent", ["allAgents"]),
+    ...mapGetters("CalculeConge",["CongeData", "pagination", "loading"]), 
+  },
+  methods: {
+    ...mapActions({
+      fetchAllAgents: "agent/fetchAllAgents",
+    }),
+    ...mapActions("CalculeConge",["fetchCongeData"]),
+    async fetch(newOptions) {
+      if (newOptions) {
+        this.options.page = newOptions.page;
+        this.options.itemsPerPage = newOptions.itemsPerPage;
+        this.options.sortBy = newOptions.sortBy;
+      }
+      const { page, itemsPerPage, sortBy } = this.options;
+      const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : "name";
+      const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : "asc";
+      await this.fetchCongeData({
+        page,
+        limit: itemsPerPage,
+        sortBy: sortKey,
+        order:sortOrder,
+        userId: this.options.selectedAgent,
+        month: this.options.selectedMonth,
+      });
+    }, 
+    exportToExcel() {
+      const data = this.CongeData.map(item => ({
+        'Agent': item.name,
+        'Nb Mois effectué': item.monthsDone,
+        'SOLDE CONGE': item.SOLDECONGE,
+        'CONGE PRISE': item.CONGEPRISE,
+        'Sanction': item.sanction,
+        'RESTE CONGE': item.RESTCONGE,
+        'Rest ancien congé': item.RESTANCIENCONGE
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Données de Congé");
+
+      // Générer un nom de fichier avec la date actuelle
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const fileName = `Données_de_Congé_${dateStr}.xlsx`;
+
+      // Déclencher le téléchargement
+      XLSX.writeFile(wb, fileName);
+    },
+  },
+  async created() {
+    await this.fetchAllAgents();
+  },
 };
 </script>
 

@@ -53,8 +53,10 @@ export default {
   data() {
     return {
       headers: [
-        { title: "Agent", key: "User.name" },
-        { title: "Date d'Absence", key: "date" },
+        { title: "Agent", key: "name" },
+        { title: "Date début d'Absence", key: "startDate" },
+        { title: "Date fin d'Absence", key: "endDate" },
+        { title: "Nbr de jours", key: "days" },
         { title: "raison", key: "raison" },
       ],
       search: "",

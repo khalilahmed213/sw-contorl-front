@@ -341,15 +341,14 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["getSchedules", "isLoading"]),
+    ...mapGetters('schedule',["getSchedules", "isLoading"]),
   },
   methods: {
-    ...mapActions([
+    ...mapActions('schedule',[
       "fetchSchedules",
       "createSchedule",
       "updateSchedule",
       "deleteSchedule",
-      "toggleSelected",
     ]),
     openDialog() {
       this.dialog = true;

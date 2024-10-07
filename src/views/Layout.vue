@@ -17,7 +17,6 @@
           <v-list-group
             v-if="item.subItems"
             :value="item.title"
-            :active="isActive(item)"
           >
             <template v-slot:activator="{ props }">
               <v-list-item
@@ -127,30 +126,34 @@ export default {
         this.mini = false;
       }
     },
-    isActive(item) {
-      if (item.to) {
-        return this.$route.path.startsWith(item.to);
-      }
-      if (item.subItems) {
-        return item.subItems.some(subItem => this.$route.path.startsWith(subItem.to));
-      }
-      return false;
-    },
   },
 };
 </script>
 
 <style scoped>
-.v-list-item--active {
-  background-color: rgb(var(--v-theme-primary));
-  color: rgb(var(--v-theme-on-primary));
-}
-
 .v-list-group__items .v-list-item {
-  min-height: 40px;
+  padding-left: 16px !important;
 }
 
-.v-list-group--active > .v-list-item {
-  background-color: rgba(var(--v-theme-primary), 0.1);
+.v-navigation-drawer--rail .v-list-item__prepend {
+  justify-content: center;
+}
+
+.v-navigation-drawer--rail .v-list-group__items .v-list-item {
+  padding-left: 0 !important;
+}
+
+.v-navigation-drawer--rail .v-list-item__content,
+.v-navigation-drawer--rail .v-list-group__items .v-list-item__content {
+  display: none;
+}
+
+.v-navigation-drawer--rail .v-list-group__items .v-list-item__prepend {
+  min-width: 0;
+  margin-inline-end: 0;
+}
+
+.v-navigation-drawer--rail .v-list-group__items .v-list-item {
+  justify-content: center;
 }
 </style>

@@ -7,9 +7,8 @@ import presence from './presence'
 import penalite from './penalite'
 import autorisation from './autorisation'
 import conge from './conge'
-import calcule from './calcule'
-import absence from './absence'
 import retard from './retard'
+
 export default createStore({
   modules: {
     auth,
@@ -20,8 +19,6 @@ export default createStore({
     presence,
     penalite,
     autorisation,
-    calcule,
-    absence,
     retard
   }
 });

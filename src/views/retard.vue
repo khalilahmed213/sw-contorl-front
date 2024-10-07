@@ -56,9 +56,11 @@ export default {
     return {
       search: '',
       headers: [
-        { title: 'Agent', align: 'start', key: 'userName' },
+        { title: 'Agent', align: 'start', key: 'User.name' },
         { title: 'Date', align: 'start', key: 'date' },
-        { title: 'Retard', key: 'totalTardiness' },
+        { title: 'Retard Matin', key: 'retardm' },
+        { title: 'Retard Après Midi', key: 'retardm' },
+        { title: 'Retard total', key: 'retardtotal' },
       ],
       months: [
         { title: "Janvier", value: 1 },
