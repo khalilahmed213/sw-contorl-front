@@ -112,13 +112,15 @@ export default {
         endDate: '',
         raison: '',
         status: '',
-        UserId: this.currentUserId, // Add UserId
+        UserId: this.currentUserId, 
+        ScheduleId:''
       },
       defaultItem: {
         startDate: '',
         endDate: '',
         raison: '',
         status: '',
+        ScheduleId:''
       },
       options: {
         page: 1,
@@ -165,7 +167,7 @@ export default {
     },
 
     openAddDialog() {
-      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId };
+      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId, ScheduleId:null};
       this.dialog = true;
     },
 

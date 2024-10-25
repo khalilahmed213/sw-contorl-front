@@ -23,7 +23,7 @@ import demandeautorisationemp from '../views/employe/demadeautorisation.vue'
 import demandecongeemp from '../views/employe/demandeconge.vue'
 import projet from '../views/Projet.vue'
 import ConfigHoraire from '../views/ConfigHoraire.vue'
-
+import DemandeAutorisation from '../views/DemandeAutorisation.vue'
 const routes = [
   {
     path: '/',
@@ -88,7 +88,7 @@ const routes = [
       {
         path: 'demandeautorisation',
         name: 'Demande Autorisation',
-        component: demandeautorisation
+        component: DemandeAutorisation
       },
       {
         path: 'presence',

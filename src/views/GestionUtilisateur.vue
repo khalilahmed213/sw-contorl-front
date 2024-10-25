@@ -341,7 +341,7 @@ export default {
         console.error("Error resetting password:", error);
       }
     },
-    exportTableToExcel() {
+    exportToExcel() {
       const ws = XLSX.utils.json_to_sheet(this.agents.map(agent => ({
         "Agent": agent.name,
         "Email": agent.email,

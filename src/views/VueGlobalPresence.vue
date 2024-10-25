@@ -5,7 +5,7 @@
           v-model="options.selectedMonth"
           :items="months"
           @update:modelValue="fetch"
-          label="filtrer un mois"
+          label="filtrer par mois"
           clearable
           class="mx-4"
           item-value="value"

@@ -117,7 +117,7 @@
 
 <script>
 import { mapState, mapActions,mapGetters } from 'vuex';
-
+import moment from 'moment';
 export default {
   data() {
     return {
@@ -295,7 +295,7 @@ export default {
               autorisationData: {
                 date: this.editedItem.date,
                 heureDebut: this.editedItem.heureDebut,
-                heureFin: this.editedItem.heureFin,
+                heureFin:this.editedItem.heureFin, 
                 UserId: this.currentUserId
               }
             });
@@ -306,9 +306,11 @@ export default {
               date: this.editedItem.date,
               heureDebut: this.editedItem.heureDebut,
               heureFin: this.editedItem.heureFin,
-              UserId: this.currentUserId
+              UserId: this.currentUserId,
+              ScheduleId:1
             });
             this.showSnackbar('Autorisation ajoutée avec succès', 'success');
+            console.log(this.editedItem)
           }
           this.closeDialog();
           await this.fetchAutorisations(this.options);
@@ -369,7 +371,7 @@ export default {
     },
   },
   async mounted() {
-    await this.fetchSelectedSchedule()
+    
   },
 };
 </script>

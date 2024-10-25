@@ -115,6 +115,22 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+  async createAutorisation({ commit}, autorisationData) {
+    commit('SET_LOADING', true);
+    console.log(this.autorisationData)
+    try {
+      await axios.post(`http://localhost:3000/api/autorisations`, autorisationData, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`
+        }
+      });
+     
+    } catch (error) {
+      commit('SET_ERROR', error.message);
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
 };
 
 const getters = {

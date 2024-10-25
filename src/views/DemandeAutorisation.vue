@@ -179,7 +179,6 @@ export default {
    await this.fetchAllAgents();
   },
   mounted(){
-    console.log(this.autorisations)
   }
 };
 </script>
