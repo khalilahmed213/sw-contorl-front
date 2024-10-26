@@ -107,6 +107,9 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
+mapGetters
 export default {
   name: 'Layout',
   data() {
@@ -121,11 +124,9 @@ export default {
     currentRouteName() {
       return this.$route.name;
     },
-    userRole() {
-      return 'admin';
-    },
+    ...mapGetters('auth', ['userRole']),
     menuItems() {
-      return this.userRole === 'admin'
+      return this.userRole == 'admin'
         ? [
             { title: 'Home', icon: 'mdi-home', to: '/app/home' },
             { 
