@@ -73,9 +73,6 @@
             >
           </template>
         </v-data-table-server>
-     
-      
-  
     
     <v-dialog v-model="dialog">
       <v-card>
@@ -113,7 +110,7 @@
             label="Entrée 1"
             type="time"
             v-if="
-              editedItem.absence === 'Présent' && selectedschedule.isRecurring
+              editedItem.absence === 'Présent' && isScheduleRecurring
             "
           ></v-text-field>
           <v-text-field
@@ -121,7 +118,7 @@
             label="Sortie 1"
             type="time"
             v-if="
-              editedItem.absence === 'Présent' && selectedschedule.isRecurring
+              editedItem.absence === 'Présent' && isScheduleRecurring
             "
           ></v-text-field>
           <v-textarea
@@ -229,13 +226,13 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "selectedschedule",
       "todayPresenceAndAbsence",
       "horaire",
       "getSchedules",
-      "isRecuring",
-      "totalItems"
+      "totalItems",
     ]),
+    ...mapGetters('schedule',["isRecurring"]),
+    
     isToday() {
       // Compare only the date part
       return moment(this.dateselect).isSame(moment(), "day");
@@ -250,7 +247,6 @@ export default {
         sortie1,
         commentaires,
       } = this.editedItem;
-      const { isRecurring } = this.selectedschedule;
 
       if (absence === "Absent") {
         return !(commentaires && commentaires !== "N/A");
@@ -268,16 +264,12 @@ export default {
       }
     },
     isScheduleRecurring() {
-    if (!this.horaire) {
-      return this.selectedschedule ? this.selectedschedule.isRecurring : false;
-    } else {
-      return this.isRecuring;
-    }
+      return this.isRecurring;
   },
   },
   methods: {
+    ...mapActions('schedule',['checkIfScheduleIsRecurring']),
     ...mapActions([
-      "fetchSelectedSchedule",
       "fetchPresenceAndAbsence",
       "updatePresence",
       "addPresence",
@@ -315,9 +307,7 @@ export default {
     async saveItem() {
       if (this.mode == "add") {
         const payload = { ...this.editedItem };
-
-        // Remove entree1 and sortie1 if not recurring
-        if (!this.selectedschedule.isRecurring) {
+        if (isRecurring) {
           delete payload.entree1;
           delete payload.sortie1;
         }
@@ -367,9 +357,16 @@ export default {
       
     },
   },
+  mounted(){
+console.log(this.isRecurring)
+  },
+  isRecurring(newVal) {
+    if (newVal==true){
+    console.log('isRecurring:', newVal);
+  } 
+  },
   async created() {
-    await this.fetchSelectedSchedule();
-    await this.fetchSchedules();
+    await this.checkIfScheduleIsRecurring();
     this.options.dateselect = new Date();
   },
   async mounted() {

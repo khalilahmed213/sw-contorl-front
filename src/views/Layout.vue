@@ -108,8 +108,6 @@
 
 <script>
 import { mapGetters } from 'vuex';
-
-mapGetters
 export default {
   name: 'Layout',
   data() {
@@ -163,7 +161,7 @@ export default {
     },
     toggleMini() {
       this.mini = !this.mini;
-      // Close expanded group when sidebar is collapsed
+      
       if (this.mini) {
         this.expandedGroup = null;
       }

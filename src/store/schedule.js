@@ -15,7 +15,7 @@ const getters = {
   getError: state => state.error,
   isLoading: state => state.loading,
   selectedschedule: state=>state.isselectedschedule,
-  isrecurring: state => state.isRecurring,
+  isRecurring: state => state.isRecurring,
   scheduleSelected: state => state.schedule,
   
 };
@@ -37,7 +37,7 @@ const mutations = {
     }
   },
   SET_IS_RECURRING(state, isRecurring) {
-    state.isrecurring = isRecurring;
+    state.isRecurring= isRecurring;
   },
   DELETE_SCHEDULE(state, id) {
     state.schedules = state.schedules.filter(schedule => schedule.id !== id);
@@ -55,7 +55,7 @@ const actions = {
           Authorization: `Bearer ${getAccessToken()}`,
         },
       });
-      console.log(response.data)
+     
       commit('setSchedules', response.data);
     } catch (error) {
       console.error('Failed to fetch schedules:', error.message);
@@ -122,12 +122,9 @@ const actions = {
       throw error;
     }
   },
-  async checkIfScheduleIsRecurring({ commit }, ScheduleId) {
+  async checkIfScheduleIsRecurring({ commit }) {
     try {
       const response = await axios.get(`http://localhost:3000/api/schedules/getrecuring`, {
-        params: {
-          id: ScheduleId,
-        },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }

@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-btn color="primary" @click="openDialog">Ajouter Horaire</v-btn>
-    <v-dialog v-model="dialog" max-width="500px">
+    <v-dialog v-model="dialog" @click:outside="handleClickOutside" max-width="500px">
       <v-card>
         <v-card-title>
           {{ editedIndex === -1 ? "Créer" : "Modifier" }} Horaire
@@ -261,20 +261,6 @@
         </v-data-table>
       </v-card-text>
     </v-card>
-
-    <!-- Popup -->
-    <v-dialog v-model="popupVisible" max-width="300px">
-      <v-card>
-        <v-card-title>{{ selectedSchedule?.name }} sélectionné</v-card-title>
-        <v-card-text>
-          L'horaire "{{ selectedSchedule?.name }}" a été sélectionné.
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="blue darken-1" text @click="popupVisible = false">Fermer</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
       {{ snackbar.message }}
@@ -329,7 +315,6 @@ export default {
       ],
       bool: true,
       selectedSchedule: null,
-      popupVisible: false,
       snackbar: {
         show: false,
         message: '',
@@ -354,6 +339,11 @@ export default {
       this.dialog = true;
       this.bool = this.editedSchedule.isRecurring;
     },
+    handleClickOutside() {
+  this.resetForm();
+  this.editedIndex = -1;
+  this.dialog = false;
+},
     editSchedule(item) {
       this.editedIndex = this.getSchedules.indexOf(item);
       this.editedSchedule = { ...item };
@@ -376,6 +366,7 @@ export default {
       this.dialog = false;
       this.$refs.form.reset();
       this.resetForm();
+      this.editedIndex=-1
     },
     resetForm() {
       this.editedSchedule = {
@@ -393,11 +384,6 @@ export default {
     },
     toggleBool() {
       this.bool = this.editedSchedule.isRecurring;
-    },
-    showPopup(item) {
-      this.load = false;
-      this.selectedSchedule = item;
-      this.popupVisible = true;
     },
     confirmDelete(item) {
       this.scheduleToDelete = item;
