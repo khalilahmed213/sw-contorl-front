@@ -143,8 +143,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-   
-  
+  <div>{{ todayPresenceAndAbsence }}</div>
 
 </template>
 
@@ -358,7 +357,7 @@ export default {
     },
   },
   mounted(){
-console.log(this.isRecurring)
+
   },
   isRecurring(newVal) {
     if (newVal==true){
@@ -368,8 +367,6 @@ console.log(this.isRecurring)
   async created() {
     await this.checkIfScheduleIsRecurring();
     this.options.dateselect = new Date();
-  },
-  async mounted() {
   },
 };
 </script>
