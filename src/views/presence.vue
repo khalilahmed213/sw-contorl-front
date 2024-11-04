@@ -15,12 +15,13 @@
   </div>
       
         <v-data-table-server
-          :headers="isScheduleRecurring ? headersRecurring : headersRamadan"
+          :headers="!isScheduleRecurring ? headersRecurring : headersRamadan"
           :items="todayPresenceAndAbsence"
           :options.sync="options"
           :server-items-length="totalItems"
            @update:options="fetch"
           :loading="loading"
+          :items-length="totalItems"
           class="elevation-1"
         >
           <template v-slot:item.Agent="{ item }">
@@ -143,7 +144,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  <div>{{ todayPresenceAndAbsence }}</div>
+  <div>{{ totalItems }}</div>
 
 </template>
 
@@ -159,40 +160,40 @@ export default {
   data() {
     return {
       headersRecurring: [
-        { title: "Agent", key: "Agent" },
-        { title: "Environnement", key: "environnement" },
-        { title: "présence", key: "absence" },
+        { title: "Agent", key: "Agent",sortable:false },
+        { title: "Environnement", key: "environnement" ,sortable:false},
+        { title: "présence", key: "absence",sortable:false},
         {
           title: "Shift Matin",
           align: "center",
           children: [
-            { title: "Entrée Matin", key: "entree" },
-            { title: "Sortie Matin", key: "sortie" },
-            { title: "Prod Matin", key: "prodMatin" },
+            { title: "Entrée Matin", key: "entree",sortable:false },
+            { title: "Sortie Matin", key: "sortie" ,sortable:false},
+            { title: "Prod Matin", key: "prodMatin" ,sortable:false},
           ],
         },
         {
           title: "Shift Après Midi",
           align: "center",
           children: [
-            { title: "Entrée Après-Midi", key: "entree1" },
-            { title: "Sortie Après-Midi", key: "sortie1" },
-            { title: "Prod Après-Midi", key: "prodApresMidi" },
+            { title: "Entrée Après-Midi", key: "entree1" ,sortable:false},
+            { title: "Sortie Après-Midi", key: "sortie1",sortable:false },
+            { title: "Prod Après-Midi", key: "prodApresMidi" ,sortable:false},
           ],
         },
-        { title: "Prod", key: "prod" },
-        { title: "Commentaires", key: "commentaires" },
+        { title: "Prod", key: "prod" ,sortable:false},
+        { title: "Commentaires", key: "commentaires",sortable:false },
         { title: "Actions", key: "actions", sortable: false },
       ],
       headersRamadan: [
-        { title: "Agent", key: "Agent" },
-        { title: "Environnement", key: "environnement" },
-        { title: "Présence", key: "absence" },
-        { title: "Entrée", key: "entree" },
-        { title: "Sortie", key: "sortie" },
+        { title: "Agent", key: "Agent",sortable:false },
+        { title: "Environnement", key: "environnement",sortable:false },
+        { title: "Présence", key: "absence" ,sortable:false},
+        { title: "Entrée", key: "entree" ,sortable:false},
+        { title: "Sortie", key: "sortie" ,sortable:false},
         { title: "Prod", key: "prod" },
-        { title: "Commentaires", key: "commentaires" },
-        { title: "Actions", key: "actions", sortable: false },
+        { title: "Commentaires", key: "commentaires" ,sortable:false},
+        { title: "Actions", key: "actions", sortable: false,sortable:false },
       ],
       dialog: false,
       editedIndex: -1,
@@ -217,8 +218,6 @@ export default {
         dateselect: new Date(),
         page: 1,
         itemsPerPage: 10,
-        sortBy: [],
-        sortDesc: [],
       },
       loading: false,
     };
@@ -341,32 +340,24 @@ export default {
       if (newOptions) {
         this.options.page = newOptions.page;
         this.options.itemsPerPage=newOptions.itemsPerPage
-        this.options.sortBy=newOptions.sortBy
       }
-      const {dateselect, page, itemsPerPage, sortBy} = this.options;
-      const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : "name";
-      const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : "asc";
+      const {dateselect, page, itemsPerPage} = this.options;
+  
       await this.fetchPresenceAndAbsence({
         dateselect:dateselect,
         page: page,
         itemsPerPage: itemsPerPage,
-        sortBy: sortKey,
-        sortDesc:sortOrder,
       });
-      
+      await this.checkIfScheduleIsRecurring(this.options.dateselect);
     },
   },
   mounted(){
 
   },
-  isRecurring(newVal) {
-    if (newVal==true){
-    console.log('isRecurring:', newVal);
-  } 
-  },
   async created() {
-    await this.checkIfScheduleIsRecurring();
+   
     this.options.dateselect = new Date();
+    await this.checkIfScheduleIsRecurring(this.options.dateselect);
   },
 };
 </script>

@@ -19,22 +19,18 @@ const getters = {
 };
 
 const actions = {
-  async fetchPresenceAndAbsence({ commit }, { dateselect, page, itemsPerPage, sortBy, sortDesc }) {
+  async fetchPresenceAndAbsence({ commit }, { dateselect, page, itemsPerPage}) {
 
     try {
       const response = await axios.get('http://localhost:3000/api/presence/fetch', {
-        params: { dateselect, page,itemsPerPage, sortBy, sortDesc },
+        params: { dateselect, page,itemsPerPage},
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
     
       commit('setTodayPresenceAndAbsence', response.data.data);
-      commit('sethoraire', response.data.recordsFound);
-      commit('setisRecuring', response.data.isRecurring);
-      commit('setTotalItems', response.data.totalItems);
-      commit('setCurrentPage', response.data.currentPage);
-      commit('setTotalPages', response.data.totalPages);
+      commit('setTotalItems', response.data.pagination.totalItems);
     } catch (error) {
       console.error("Error fetching presence and absence:", error);
     }

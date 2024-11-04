@@ -122,14 +122,15 @@ const actions = {
       throw error;
     }
   },
-  async checkIfScheduleIsRecurring({ commit }) {
+  async checkIfScheduleIsRecurring({ commit },date) {
     try {
-      const response = await axios.get(`http://localhost:3000/api/schedules/getrecuring`, {
+      const response = await axios.get(`http://localhost:3000/api/schedules/getisramadan`, {
+        params: { date },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
-      commit('SET_IS_RECURRING', response.data.isRecurring);
+      commit('SET_IS_RECURRING', response.data.isRamadan);
     } catch (error) {
       console.log(error)
     }
@@ -149,8 +150,6 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
-  
-
 };
 
 export default {
