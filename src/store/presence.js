@@ -7,6 +7,8 @@ const state = {
   totalItems: 0,
   currentPage: 1,
   totalPages: 1,
+  presencesforacceptance:null,
+  loading:false
 };
 
 const getters = {
@@ -16,6 +18,7 @@ const getters = {
   totalItems: state => state.totalItems,
   currentPage: state => state.currentPage,
   totalPages: state => state.totalPages,
+  presencesforacceptance:state=>state.presencesforacceptance,
 };
 
 const actions = {
@@ -59,7 +62,62 @@ const actions = {
       throw error;
     }
   },
- 
+  async addPointage({commit},{env,date,status,UserId}){
+    try{
+      console.log('done')
+    const response=await axios.post('http://localhost:3000/api/presence/addpointage',env,{
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`
+      },
+      params:{
+        env:env,
+        date:date,
+        status:status,
+        UserId:UserId
+      },
+      }
+    )
+    return response.data;
+  }catch(error){
+    console.log(error)
+  }
+},
+async updatePresence({ commit }, { id, ...fieldsToUpdate }) {
+  try {
+    // Send both the `id` and the other fields in the request body
+    const response = await axios.put('http://localhost:3000/api/presence/addtimes', 
+      { id, ...fieldsToUpdate },
+      {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+},
+async getPresences({ commit }) {
+  try {
+    // Send both the `id` and the other fields in the request body
+    const response = await axios.get('http://localhost:3000/api/getPresences', 
+      { id, ...fieldsToUpdate },
+      {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`
+        }
+      }
+      
+    );
+    commit('setPresenceForAccepttance', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 }
 
 const mutations = {
@@ -80,6 +138,9 @@ const mutations = {
   },
   setTotalPages(state, totalPages) {
     state.totalPages = totalPages;
+  },
+  setPresenceForAccepttance(state,p){
+    state.presencesforacceptance=p
   }
 };
 

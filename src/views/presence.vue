@@ -111,7 +111,7 @@
             label="Entrée 1"
             type="time"
             v-if="
-              editedItem.absence === 'Présent' && isScheduleRecurring
+              editedItem.absence === 'Présent' && !isScheduleRecurring
             "
           ></v-text-field>
           <v-text-field
@@ -119,7 +119,7 @@
             label="Sortie 1"
             type="time"
             v-if="
-              editedItem.absence === 'Présent' && isScheduleRecurring
+              editedItem.absence === 'Présent' && !isScheduleRecurring
             "
           ></v-text-field>
           <v-textarea
@@ -198,18 +198,22 @@ export default {
       dialog: false,
       editedIndex: -1,
       editedItem: {
-        ScheduleId: "",
-        UserId: "",
-        environnement: "",
-        absence: "",
-        entree: "",
-        sortie: "",
-        entree1: "",
-        sortie1: "",
-        commentaires: "",
-        id: "",
-        createdAtdate: "",
-      },
+  recordType: '',
+  recordId: '',
+  UserId: '',
+  Agent: '',
+  environnement: '',
+  absence: '',
+  entree: '',
+  sortie: '',
+  entree1: '',
+  sortie1: '',
+  prod: 'N/A',
+  prodMatin: 'N/A',
+  prodApresMidi: 'N/A',
+  commentaires: '',
+  createdAtdate: ''
+},
       mode: "",
       isMenuOpen: false,
       dialoghoraire: false,
@@ -248,7 +252,7 @@ export default {
 
       if (absence === "Absent") {
         return !(commentaires && commentaires !== "N/A");
-      } else if (isRecurring && absence === "Présent") {
+      } else if (!this.isRecurring && absence === "Présent") {
         return !(entree && entree !== "N/A" && sortie && sortie !== "N/A");
       } else {
         return !(
@@ -280,7 +284,7 @@ export default {
         this.editedIndex = index;
         this.editedItem = {
           ...this.todayPresenceAndAbsence[index],
-          ScheduleId: this.selectedschedule.id,
+          ScheduleId: 1,
           createdAtdate: this.options.dateselect,
         };
       } else if (mode === "add") {
@@ -305,7 +309,7 @@ export default {
     async saveItem() {
       if (this.mode == "add") {
         const payload = { ...this.editedItem };
-        if (isRecurring) {
+        if (this.isRecurring) {
           delete payload.entree1;
           delete payload.sortie1;
         }

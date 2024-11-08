@@ -12,20 +12,8 @@
           item-value="value"
           style="max-width: 200px"
         ></v-select>
-        <v-select
-          v-model="options.selectedAgent"
-          :items="allAgents"
-          item-title="name"
-          item-value="id"
-          label="Filtrer par agent"
-          clearable
-          @update:modelValue="fetch"
-          class="mr-2"
-          style="max-width: 200px"
-        ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green"
-          >Export Excel</v-btn
-        >
+          >Export Excel</v-btn>
       </v-card-title>
       <v-card-text>
         <v-data-table-server
@@ -77,7 +65,7 @@ export default {
         { title: "Décembre", value: 12 },
       ],
       users: [
-        { name: 'Alice', retard: 16 }, // Exemple avec des heures
+        { name: 'Alice', retard: 16 }, 
         { name: 'Bob', retard: 35.5 },
         { name: 'Charlie', retard: 0 },
         { name: 'David', retard: 24 },
@@ -94,7 +82,10 @@ export default {
   },
   computed: {
     ...mapGetters("agent", ["allAgents"]), 
-    ...mapGetters("retard",["retard", "total", "loading"]), 
+    ...mapGetters("retard",["retard", "total", "loading"]),
+    currentUserId() {
+      return this.$store.state.auth.user.id; // Get current user ID
+    },
   },
   methods: {
     getRetardColor(retard) {
@@ -151,7 +142,7 @@ export default {
         limit: itemsPerPage,
         sortBy: sortKey,
         order:sortOrder,
-        userId: this.options.selectedAgent,
+        userId:this.currentUserId,
         month: this.options.selectedMonth,
       });
     },
@@ -161,7 +152,6 @@ export default {
    
   },
   async created() {
-    await this.fetchAllAgents();
    
   },
  

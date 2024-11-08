@@ -1,41 +1,21 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      v-model="drawer"
-      :rail="mini"
-      permanent
-      @update:rail="handleRailUpdate"
-    >
+    <v-navigation-drawer v-model="drawer" :rail="mini" permanent @update:rail="handleRailUpdate">
       <v-list>
-        <v-list-item
-          prepend-avatar="/Capture.PNG"
-          :title="mini ? '' : 'swcontrole'"
-        ></v-list-item>
+        <v-list-item prepend-avatar="/Capture.PNG" :title="mini ? '' : 'swcontrole'"></v-list-item>
       </v-list>
 
       <v-divider></v-divider>
 
       <v-list density="compact" nav>
         <template v-for="item in menuItems" :key="item.title">
-          <v-list-group
-            v-if="item.subItems"
-            :value="item.title"
-            :active="isGroupActive(item)"
-            :class="{ 'mini-group': mini }"
-          >
+          <v-list-group v-if="item.subItems" :value="item.title" :active="isGroupActive(item)"
+            :class="{ 'mini-group': mini }">
             <template v-slot:activator="{ props }">
-              <v-tooltip
-                :text="mini ? item.title : ''"
-                location="right"
-                :disabled="!mini"
-              >
+              <v-tooltip :text="mini ? item.title : ''" location="right" :disabled="!mini">
                 <template v-slot:activator="{ props: tooltipProps }">
-                  <v-list-item
-                    v-bind="{ ...props, ...tooltipProps }"
-                    :prepend-icon="item.icon"
-                    :title="mini ? '' : item.title"
-                    @click="handleItemClick(item)"
-                  >
+                  <v-list-item v-bind="{ ...props, ...tooltipProps }" :prepend-icon="item.icon"
+                    :title="mini ? '' : item.title" @click="handleItemClick(item)">
                     <template v-slot:append>
                       <v-icon v-if="!mini">
                         {{ isGroupExpanded(item) ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
@@ -46,40 +26,20 @@
               </v-tooltip>
             </template>
 
-            <v-tooltip
-              v-for="subItem in item.subItems"
-              :key="subItem.title"
-              :text="mini ? subItem.title : ''"
-              location="right"
-              :disabled="!mini"
-            >
+            <v-tooltip v-for="subItem in item.subItems" :key="subItem.title" :text="mini ? subItem.title : ''"
+              location="right" :disabled="!mini">
               <template v-slot:activator="{ props: tooltipProps }">
-                <v-list-item
-                  :to="subItem.to"
-                  :prepend-icon="subItem.icon"
-                  :title="mini ? '' : subItem.title"
-                  :class="{ 'mini-sub-item': mini, 'sub-item': !mini }"
-                  v-bind="tooltipProps"
-                  @click="handleSubItemClick(item, subItem)"
-                ></v-list-item>
+                <v-list-item :to="subItem.to" :prepend-icon="subItem.icon" :title="mini ? '' : subItem.title"
+                  :class="{ 'mini-sub-item': mini, 'sub-item': !mini }" v-bind="tooltipProps"
+                  @click="handleSubItemClick(item, subItem)"></v-list-item>
               </template>
             </v-tooltip>
           </v-list-group>
 
-          <v-tooltip
-            v-else
-            :text="mini ? item.title : ''"
-            location="right"
-            :disabled="!mini"
-          >
+          <v-tooltip v-else :text="mini ? item.title : ''" location="right" :disabled="!mini">
             <template v-slot:activator="{ props: tooltipProps }">
-              <v-list-item
-                :to="item.to"
-                :prepend-icon="item.icon"
-                :title="mini ? '' : item.title"
-                v-bind="tooltipProps"
-                @click="handleItemClick(item)"
-              ></v-list-item>
+              <v-list-item :to="item.to" :prepend-icon="item.icon" :title="mini ? '' : item.title" v-bind="tooltipProps"
+                @click="handleItemClick(item)"></v-list-item>
             </template>
           </v-tooltip>
         </template>
@@ -126,30 +86,38 @@ export default {
     menuItems() {
       return this.userRole == 'admin'
         ? [
-            { title: 'Home', icon: 'mdi-home', to: '/app/home' },
-            { 
-              title: 'Gestion Congé', 
-              icon: 'mdi-calendar',
-              subItems: [
-                { title: 'Congé', icon: 'mdi-calendar-check', to: '/app/conge' },
-                { title: 'Demandes Congés', icon: 'mdi-calendar-clock', to: '/app/demandeconge' },
-              ]
-            },
-            { title: 'Gestion utilisateur', icon: 'mdi-account-group', to: '/app/gestionutilisateur' },
-            { title: 'Demandes Autorisation', icon: 'mdi-clipboard-check', to: '/app/demandeautorisation' },
-            { title: 'Presence', icon: 'mdi-account-check', to: '/app/presence' },
-            { title: 'Penalite', icon: 'mdi-gavel', to: '/app/penalite' },
-            { title: 'Absence', icon: 'mdi-account-off', to: '/app/absence' },
-            { title: 'Retard', icon: 'mdi-clock-alert', to: '/app/retard' },
-            { title: 'Horaires', icon: 'mdi-clock', to: '/app/confighoraire' },
-            { title: 'Projets', icon: 'mdi-briefcase', to: '/app/projets' },
-          ]
+          { title: 'Home', icon: 'mdi-home', to: '/app/home' },
+          {
+            title: 'Gestion Congé',
+            icon: 'mdi-calendar',
+            subItems: [
+              { title: 'Congé', icon: 'mdi-calendar-check', to: '/app/conge' },
+              { title: 'Demandes Congés', icon: 'mdi-calendar-clock', to: '/app/demandeconge' },
+            ]
+          },
+          { title: 'Gestion utilisateur', icon: 'mdi-account-group', to: '/app/gestionutilisateur' },
+          { title: 'Demandes Autorisation', icon: 'mdi-clipboard-check', to: '/app/demandeautorisation' },
+          { title: 'Presence', icon: 'mdi-account-check', to: '/app/presence' },
+          {
+            title: 'Confirmation de Présence',
+            icon: 'mdi-check-circle',
+            to: '/app/confirmationpresence'
+          },
+          { title: 'Penalite', icon: 'mdi-gavel', to: '/app/penalite' },
+          { title: 'Absence', icon: 'mdi-account-off', to: '/app/absence' },
+          { title: 'Retard', icon: 'mdi-clock-alert', to: '/app/retard' },
+          { title: 'Horaires', icon: 'mdi-clock', to: '/app/confighoraire' },
+          { title: 'Projets', icon: 'mdi-briefcase', to: '/app/projets' },
+
+        ]
         : [
-            { title: 'Congé', icon: 'mdi-calendar-account', to: '/employee/presenceparticulier' },
-            { title: 'Retard', icon: 'mdi-clock-alert', to: '/employee/retardp' },
-            { title: 'Demande autorisation', icon: 'mdi-clipboard-check', to: '/employee/demandeautorisation' },
-            { title: 'Demande congé', icon: 'mdi-calendar-clock', to: '/employee/demandeconge' },
-          ];
+          { title: 'Congé', icon: 'mdi-calendar-account', to: '/employee/presenceparticulier' },
+          { title: 'Retard', icon: 'mdi-clock-alert', to: '/employee/retardp' },
+          { title: 'Demande autorisation', icon: 'mdi-clipboard-check', to: '/employee/demandeautorisation' },
+          { title: 'Demande congé', icon: 'mdi-calendar-clock', to: '/employee/demandeconge' },
+          { title: 'Pointage', icon: 'mdi-timetable', to: '/employee/pointage' },
+
+        ];
     },
   },
   methods: {
@@ -161,7 +129,7 @@ export default {
     },
     toggleMini() {
       this.mini = !this.mini;
-      
+
       if (this.mini) {
         this.expandedGroup = null;
       }
@@ -215,8 +183,8 @@ export default {
       if (this.mini) {
         this.expandedGroup = null;
       }
-      this.selectedItem = this.menuItems.find(item => 
-        this.$route.path.startsWith(item.to) || 
+      this.selectedItem = this.menuItems.find(item =>
+        this.$route.path.startsWith(item.to) ||
         (item.subItems && item.subItems.some(subItem => this.$route.path.startsWith(subItem.to)))
       );
       if (this.selectedItem?.subItems && !this.mini) {
@@ -288,9 +256,10 @@ export default {
   margin: 0 auto;
   padding: 24px;
 }
-.v-navigation-drawer--rail .v-list-group__items .v-list-item{
-  justify-content:left;
+
+.v-navigation-drawer--rail .v-list-group__items .v-list-item {
+  justify-content: left;
   margin-left: 15px;
-  
+
 }
 </style>

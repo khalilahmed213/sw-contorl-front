@@ -17,13 +17,16 @@ import presence from '../views/presence.vue'
 import penalite from '../views/penalite.vue'
 import absence from '../views/absence.vue'
 import retard from '../views/retard.vue'
-import retardparticulier from '../views/retardparticulier.vue'
+import retardparticulier from '@/views/employe/retardparticulier.vue'
 import Homeemployee from '../views/employe/Home.vue'
 import demandeautorisationemp from '../views/employe/demadeautorisation.vue'
 import demandecongeemp from '../views/employe/demandeconge.vue'
 import projet from '../views/Projet.vue'
 import ConfigHoraire from '../views/ConfigHoraire.vue'
 import DemandeAutorisation from '../views/DemandeAutorisation.vue'
+import conge from '@/views/employe/conge.vue'
+import pointage from '@/views/employe/pointage.vue'
+import Confirmationpresence from '@/views/confirmationpresence.vue'
 const routes = [
   {
     path: '/',
@@ -120,6 +123,11 @@ const routes = [
         path: 'confighoraire',
         name: "configuration d'horaire",
         component: ConfigHoraire
+      },
+      {
+        path: 'confirmationpresence',
+        name: 'confirmation presence',
+        component:Confirmationpresence
       }
     ]
   },
@@ -134,9 +142,9 @@ const routes = [
         component: Homeemployee
       },
       {
-        path: 'presenceparticulier/:id',
+        path: 'presenceparticulier',
         name: 'Presence particulier employé',
-        component: vuepresenceparticulier,
+        component:conge,
       },
       {
         path: 'demandeautorisation',
@@ -153,6 +161,12 @@ const routes = [
         name: 'Retard Particulier',
         component: retardparticulier
       },
+      {
+        path: 'pointage',
+        name: 'pointage',
+        component: pointage
+      },
+    
       
     ]
   }
