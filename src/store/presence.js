@@ -7,7 +7,7 @@ const state = {
   totalItems: 0,
   currentPage: 1,
   totalPages: 1,
-  presencesforacceptance:null,
+  presencesforacceptance:[],
   loading:false
 };
 
@@ -102,8 +102,7 @@ async updatePresence({ commit }, { id, ...fieldsToUpdate }) {
 async getPresences({ commit }) {
   try {
     // Send both the `id` and the other fields in the request body
-    const response = await axios.get('http://localhost:3000/api/getPresences', 
-      { id, ...fieldsToUpdate },
+    const response = await axios.get('http://localhost:3000/api/presence/getPresences', 
       {
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
@@ -116,6 +115,36 @@ async getPresences({ commit }) {
   } catch (error) {
     console.error(error);
     throw error;
+  }
+},
+async togglePresenceStatus({ commit, dispatch }, { id, action, UserId, raison }) {  
+  try {
+    const response = await axios.post('http://localhost:3000/api/presence/toggle-presence', {
+      id,
+      action,
+      UserId,
+      raison
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`
+      }
+    })
+  
+
+    
+    // Refresh the presences list after successful toggle
+    await dispatch('fetchPresences') // Assuming you have a fetchPresences action
+    
+    // Return the response in case the component needs it
+    return response.data
+    
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'An error occurred while updating presence status'
+    commit('SET_ERROR', errorMessage)
+    throw error
+  } finally {
+    commit('SET_LOADING_STATUS', false)
   }
 }
 }

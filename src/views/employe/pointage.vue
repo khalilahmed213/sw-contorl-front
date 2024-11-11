@@ -33,16 +33,16 @@
       <!-- Step 2: Buttons to Point -->
       <v-card-text v-else class="text-center">
         <v-btn v-if="currentButton === 1" @click="handleClick(1)" color="primary" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
-          Button 1
+          Début Matin
         </v-btn>
         <v-btn v-if="currentButton === 2" @click="handleClick(2)" color="success" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
-          Button 2
+          Fin Matin
         </v-btn>
         <v-btn v-if="currentButton === 3" @click="handleClick(3)" color="warning" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
-          Button 3
+          Début après Midi
         </v-btn>
         <v-btn v-if="currentButton === 4" @click="handleClick(4)" color="error" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
-          Button 4
+          Fin Après Midi
         </v-btn>
       </v-card-text>
     </v-card>
@@ -106,7 +106,6 @@ export default {
           [fieldToUpdate]: currentTime
         });
 
-        alert(`Button ${buttonNumber} clicked at ${currentTime}`);
       } else {
         alert('Presence ID not found. Please select an environment first.');
       }

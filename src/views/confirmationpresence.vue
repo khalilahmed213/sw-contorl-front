@@ -22,7 +22,7 @@
         </v-card-title>
         <v-data-table-server
           :headers="headers"
-          :items="autorisations"
+          :items="presencesforacceptance"
           :options.sync="options"
           :items-length="totalItems"
           :loading="loading"
@@ -32,14 +32,14 @@
         <template v-slot:item.actions="{ item }">
           <v-icon
             color="green"
-            @click="toggleStatus(item, 'accepté')"
+            @click="toggleStatus(item,action)"
             :disabled="item.status !== 'en attente'"
           >
             mdi-check
           </v-icon>
           <v-icon
             color="red"
-            @click="toggleStatus(item, 'rejeté')"
+            @click="showAbsentDialog(item)"
             :disabled="item.status !== 'en attente'"
           >
             mdi-close
@@ -53,7 +53,6 @@
             {{ item.status }}
           </v-chip>
         </template>
-        
         </v-data-table-server>
       </v-card>
   
@@ -64,11 +63,34 @@
           <v-btn color="white" text @click="snackbar = false">Fermer</v-btn>
         </template>
       </v-snackbar>
+      <v-dialog v-model="dialogVisible" max-width="500px">
+      <v-card>
+        <v-card-title>Enter Absence Reason</v-card-title>
+        <v-card-text>
+          <v-textarea
+            v-model="absenceReason"
+            label="Reason"
+            required
+          ></v-textarea>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="dialogVisible = false">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            :loading="isLoading"
+            @click="setraison"
+          >
+            Submit
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     </v-container>
   </template>
   
   <script>
-  import { mapState, mapActions, mapGetters } from 'vuex';
+  import { mapActions, mapGetters } from 'vuex';
   import * as XLSX from 'xlsx';
   import { format } from 'date-fns'; // Import date-fns for date formatting
   import { fr } from 'date-fns/locale'; // Import French locale
@@ -77,7 +99,7 @@
     data() {
       return {
         headers: [
-          { title: "Agent", key: "User.name", sortable: true },
+          { title: "Agent", key: "User", sortable: true },
           { title: "Date", key: "date", sortable: true },
           { title: "Environnement", key: "environnement", sortable: true },
           { title: "entree", key: "entree", sortable: true },
@@ -90,6 +112,8 @@
           { title: "retardtotal", key: "retardtotal", sortable: true },
           { title: "retardm", key: "retardm", sortable: true },
           { title: "retardam", key: "retardam", sortable: true },
+          { title: "retardam", key: "retardam", sortable: true },
+          { title: "status", key: "status", sortable: true },
           { title: "Action", key: "actions", sortable: false },
         ],
         options: {
@@ -103,15 +127,19 @@
         snackbarMessage: '',
         snackbarColor: 'success',
         selectedAgent: null,
+        raison:null,
+        selectedItem:null,
+        dialogVisible:false
       };
     },
     
     computed: {
       
       ...mapGetters("agent", ["allAgents"]),
+      ...mapGetters(["presencesforacceptance"])
     },
     methods: {
-      ...mapActions(['getPresence']),
+      ...mapActions(['getPresences','togglePresenceStatus']),
       ...mapActions({
         fetchAllAgents: "agent/fetchAllAgents"
       }),
@@ -123,14 +151,19 @@
           default: return "grey";
         }
       },
-      async toggleStatus(item, newStatus) {
+     showAbsentDialog(item) {
+      this.selectedItem = item;
+      this.dialogVisible = true;
+    },
+      async toggleStatus(item,action) {
         try {
-          await this.toggleAutorisationStatus({
-            id: item.id,
-            newStatus: newStatus
+          await this.togglePresenceStatus({
+            id:item.id,
+            action:action,
+            UserId:item.UserId  
           });
           await this.fetch(this.options)
-          this.showSnackbar(`Autorisation ${newStatus}e avec succès`, 'success');
+          this.showSnackbar(`Presence ${newStatus}e avec succès`, 'success');
         } catch (error) {
           console.error('Failed to update autorisation status:', error);
           this.showSnackbar('Erreur lors de la mise à jour du statut', 'error');
@@ -142,6 +175,38 @@
         const remainingMinutes = minutes % 60;
         return `${hours}h ${remainingMinutes}m`;
       },
+      async submitAbsence() {
+
+      this.isLoading = true;
+
+      try {
+        await this.togglePresenceStatus({
+          id: this.selectedItem.id,
+          action: 'absent',
+          UserId: this.selectedItem.UserId,
+          raison: this.absenceReason
+        });
+
+        // Fetch updated presences after toggle
+        await this.getPresences({
+          page: this.options.page,
+          limit: this.options.itemsPerPage,
+          sortBy: this.options.sortBy[0].key,
+          sortOrder: this.options.sortBy[0].order,
+          agentId: this.selectedAgent
+        });
+
+        this.showSnackbar('Presence marked as absent successfully', 'success');
+      } catch (error) {
+        console.error('Failed to mark presence as absent:', error);
+        this.showSnackbar('Error marking presence as absent', 'error');
+      } finally {
+        this.dialogVisible = false;
+        this.absenceReason = '';
+        this.selectedItem = null;
+        this.isLoading = false;
+      }
+    },
       showSnackbar(message, color = 'success') {
         this.snackbarMessage = message;
         this.snackbarColor = color;
@@ -154,7 +219,7 @@
         const { page, itemsPerPage, sortBy } = this.options;
         const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'date';
         const sortOrder = sortBy && sortBy.length > 0  ? sortBy[0].order : 'desc';
-        await this.getPresence({
+        await this.getPresences({
           page,
           limit: itemsPerPage,
           sortBy: sortKey,
@@ -165,20 +230,87 @@
       
       // Modify exportToExcel to exclude createdAt and updatedAt and follow header order
       exportToExcel() {
-        const modifiedData = this.autorisations.map(item => ({
-          référence: item.référence, // Include reference
-          User: item.User.name, // Replace user id with user name
-          date: format(new Date(item.date), 'dd/MM/yyyy', { locale: fr }), // Format date
-          heureDebut: item.heureDebut, // Include start time
-          heureFin: item.heureFin, // Include end time
-          nbrheures: item.nbrheures, // Include number of hours
-          status: item.status, // Include status
-        }));
-        const worksheet = XLSX.utils.json_to_sheet(modifiedData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Autorisations');
-        XLSX.writeFile(workbook, 'autorisations.xlsx');
-      },
+  // Map the data according to the headers structure and format it appropriately
+  const modifiedData = this.presencesforacceptance.map(item => ({
+    agent: item.User,
+    date: format(new Date(item.date), 'dd/MM/yyyy', { locale: fr }),
+    environnement: item.environnement,
+    entree: item.entree,
+    sortie: item.sortie,
+    entree1: item.entree1,
+    sortie1: item.sortie1,
+    prod: item.prod,
+    "prod matin": item.prodm,
+    "prod après-midi": item.prodam,
+    "retard total": item.retardtotal,
+    "retard matin": item.retardm,
+    "retard après-midi": item.retardam,
+    status: item.status
+  }));
+
+  // Create a new workbook and worksheet
+  const worksheet = XLSX.utils.json_to_sheet(modifiedData);
+
+  // Modify column widths for better readability
+  const columnWidths = [
+    { wch: 20 }, 
+    { wch: 12 }, 
+    { wch: 15 }, 
+    { wch: 10 },  
+    { wch: 10 },  
+    { wch: 10 },  
+    { wch: 10 }, 
+    { wch: 10 },  
+    { wch: 12 },  
+    { wch: 15 },  
+    { wch: 12 },  
+    { wch: 12 }, 
+    { wch: 15 },  
+    { wch: 10 },
+  ];
+
+  worksheet['!cols'] = columnWidths;
+
+  // Create the workbook and append the worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Presences');
+
+  // Generate the Excel file
+  XLSX.writeFile(workbook, 'presences.xlsx');
+},
+
+async toggleStatus(item, action) {
+      this.isLoading = true;
+
+      try {
+        await this.togglePresenceStatus({
+          id: item.id,
+          action: action,
+          UserId: item.UserId
+        });
+
+        // Fetch updated presences after toggle
+        await this.getPresences({
+          page: this.options.page,
+          limit: this.options.itemsPerPage,
+          sortBy: this.options.sortBy[0].key,
+          sortOrder: this.options.sortBy[0].order,
+          agentId: this.selectedAgent
+        });
+
+        if (action === 'present') {
+          this.showSnackbar('Presence marked as present successfully', 'success');
+        } else {
+          this.showSnackbar('Presence marked as absent successfully', 'success');
+        }
+      } catch (error) {
+        console.error(`Failed to mark presence as ${action}:`, error);
+        this.showSnackbar(`Error marking presence as ${action}`, 'error');
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     },
    
    async created() {
