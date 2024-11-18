@@ -28,16 +28,10 @@
             {{ item.Agent }}
           </template>
           <template v-slot:item.environnement="{ item }">
-            <v-select
-              v-model="item.environnement"
-              :items="['Onsite', 'Remote', 'Hybrid']"
-            ></v-select>
+            {{ item.environnement }}
           </template>
           <template v-slot:item.absence="{ item }">
-            <v-select
-              v-model="item.absence"
-              :items="['Présent', 'Absent']"
-            ></v-select>
+            {{ item.absence}}
           </template>
           <template v-slot:item.entree="{ item }">
             {{ item.entree }}
@@ -235,36 +229,7 @@ export default {
     ]),
     ...mapGetters('schedule',["isRecurring"]),
     
-    isToday() {
-      // Compare only the date part
-      return moment(this.dateselect).isSame(moment(), "day");
-    },
-    isSaveDisabled() {
-      const {
-        absence,
-        environnement,
-        entree,
-        sortie,
-        entree1,
-        sortie1,
-        commentaires,
-      } = this.editedItem;
-
-      if (absence === "Absent") {
-        return !(commentaires && commentaires !== "N/A");
-      } else if (!this.isRecurring && absence === "Présent") {
-        return !(entree && entree !== "N/A" && sortie && sortie !== "N/A");
-      } else {
-        return !(
-          environnement &&
-          environnement !== "N/A" &&
-          entree &&
-          entree !== "N/A" &&
-          sortie &&
-          sortie !== "N/A"
-        );
-      }
-    },
+ 
     isScheduleRecurring() {
       return this.isRecurring;
   },
@@ -273,61 +238,10 @@ export default {
     ...mapActions('schedule',['checkIfScheduleIsRecurring']),
     ...mapActions([
       "fetchPresenceAndAbsence",
-      "updatePresence",
-      "addPresence",
     ]),
     ...mapActions(["fetchSchedules", "toggleSelected"]),
 
-    openDialog(mode, index) {
-      this.mode = mode;
-      if (mode === "edit") {
-        this.editedIndex = index;
-        this.editedItem = {
-          ...this.todayPresenceAndAbsence[index],
-          ScheduleId: 1,
-          createdAtdate: this.options.dateselect,
-        };
-      } else if (mode === "add") {
-        this.editedIndex = index;
-        this.editedItem = {
-          Agent: this.todayPresenceAndAbsence[index].Agent,
-          UserId: this.todayPresenceAndAbsence[index].UserId,
-          ScheduleId: this.selectedschedule.id,
-          environnement: this.todayPresenceAndAbsence[index].environnement,
-          absence: this.todayPresenceAndAbsence[index].absence,
-          entree: this.todayPresenceAndAbsence[index].entree,
-          sortie: this.todayPresenceAndAbsence[index].sortie,
-          entree1: this.todayPresenceAndAbsence[index].entree1,
-          sortie1: this.todayPresenceAndAbsence[index].sortie1,
-          commentaires: this.todayPresenceAndAbsence[index].commentaires,
-          createdAtdate: this.dateselect,
-        };
-      }
-      this.dialog = true;
-    },
-
-    async saveItem() {
-      if (this.mode == "add") {
-        const payload = { ...this.editedItem };
-        if (this.isRecurring) {
-          delete payload.entree1;
-          delete payload.sortie1;
-        }
-
-        // Format the date before sending it
-        payload.createdAtdate = moment(this.dateselect).format("YYYY-MM-DD");
-
-        await this.addPresence(payload);
-      } else {
-        await this.updatePresence(this.editedItem);
-      }
-      this.closeDialog();
-     this.fetchPresenceAndAbsence(this.options); 
-    },
-    closeDialog() {
-      this.dialog = false;
-      this.editedIndex = -1;
-    },
+    
   
     formatDate(date) {
       const day = date.getDate();

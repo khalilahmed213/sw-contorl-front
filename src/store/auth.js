@@ -1,6 +1,6 @@
 import { login } from '@/api/auth';
 import axios from 'axios';
-
+const getAccessToken = () => localStorage.getItem('accessToken');
 const state = {
   accessToken: localStorage.getItem('accessToken') || null,
   user: JSON.parse(localStorage.getItem('user')) || null,
@@ -42,6 +42,11 @@ const actions = {
     } 
   },
   logout({ commit, state }) {
+    console.log(getAccessToken())
+    const response = axios.post('http://localhost:3000/api/auth/logout', {},{
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+      }}); 
     commit('SET_ACCESS_TOKEN', null);
     commit('SET_USER', null);
     localStorage.removeItem('accessToken');

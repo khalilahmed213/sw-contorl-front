@@ -10,12 +10,3 @@ export const login = async (credentials) => {
     throw new Error(error.response.data.message || 'Login failed');
   }
 };
-
-export const refreshToken = async (refreshToken) => {
-  try {
-    const response = await axios.post(`${API_URL}/refresh-token`, { refreshToken });
-    return response.accessToken;
-  } catch (error) {
-    throw new Error(error.response.data.message || 'Token refresh failed');
-  }
-};

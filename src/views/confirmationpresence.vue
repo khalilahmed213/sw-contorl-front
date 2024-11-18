@@ -248,7 +248,7 @@ export default {
         "retard total": item.retardtotal,
         "retard matin": item.retardm,
         "retard après-midi": item.retardam,
-        status: item.status
+        status: item.status,
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(modifiedData);

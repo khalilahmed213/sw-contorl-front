@@ -67,7 +67,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters,mapActions } from 'vuex';
 export default {
   name: 'Layout',
   data() {
@@ -121,8 +121,10 @@ export default {
     },
   },
   methods: {
-    logout() {
-      this.$router.push({ name: 'Login' });
+   
+    async logout() {
+      await this.$store.dispatch('auth/logout');
+    this.$router.push({ name: 'Login' });
     },
     goToProfile() {
       this.$router.push({ name: 'Profile' });
