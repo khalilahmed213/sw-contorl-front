@@ -50,11 +50,13 @@
       <v-app-bar-nav-icon @click="toggleMini" size="large"></v-app-bar-nav-icon>
       <v-app-bar-title class="text-h5">{{ currentRouteName }}</v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click="goToProfile" size="large">
+    <div v-if="userRole !== 'admin'" >
+      <v-btn  disabled="userRole !== 'admin'" icon @click="goToProfile" size="large">
         <v-avatar color="primary" size="48">
           <v-img src="https://via.placeholder.com/150" alt="Profile"></v-img>
         </v-avatar>
       </v-btn>
+    </div>
       <v-btn @click="logout" prepend-icon="mdi-logout" size="large">Logout</v-btn>
     </v-app-bar>
 
@@ -123,7 +125,7 @@ export default {
   methods: {
    
     async logout() {
-      await this.$store.dispatch('auth/logout');
+    await this.$store.dispatch('auth/logout');
     this.$router.push({ name: 'Login' });
     },
     goToProfile() {
@@ -131,7 +133,6 @@ export default {
     },
     toggleMini() {
       this.mini = !this.mini;
-
       if (this.mini) {
         this.expandedGroup = null;
       }

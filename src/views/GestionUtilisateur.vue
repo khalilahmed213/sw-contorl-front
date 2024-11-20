@@ -3,9 +3,7 @@
     <v-card elevation="1">
       <v-row align="center" class="mb-4">
         <v-col cols="6" class="text-left">
-          <v-btn @click="exportToExcel" class="ml-auto" color="green"
-          >Export Excel</v-btn
-        >
+          <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
         </v-col>
         <v-col cols="6" class="text-right">
           <v-btn color="primary" @click="openDialog('add')">
@@ -14,26 +12,14 @@
         </v-col>
       </v-row>
 
-      <v-data-table-server
-        :headers="headers"
-        :items="agents"
-        :items-length="total"
-        :loading="loadingagent"
-        @update:options="fetchAgents"
-      >
+      <v-data-table-server :headers="headers" :items="agents" :items-length="total" :loading="loadingagent"
+        @update:options="fetchAgents">
         <template v-slot:top>
           <v-toolbar flat>
-          
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
-            <v-text-field
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Rechercher"
-              single-line
-              hide-details
-              @input="debouncedSearch"
-            ></v-text-field>
+            <v-text-field v-model="search" append-icon="mdi-magnify" label="Rechercher" single-line hide-details
+              @input="debouncedSearch"></v-text-field>
           </v-toolbar>
         </template>
 
@@ -46,9 +32,6 @@
           </v-icon>
           <v-icon size="small" class="me-2" @click="openDeleteConfirmation(item.id)">
             mdi-delete
-          </v-icon>
-          <v-icon size="small" @click="resetPassword(item.email)" :disabled="loadingagent">
-            mdi-lock-reset
           </v-icon>
         </template>
       </v-data-table-server>
@@ -68,50 +51,31 @@
               </v-list>
             </template>
             <v-form v-else ref="form" v-model="valid">
-              <v-text-field
-                v-model="editedAgent.name"
-                label="Agent"
-                :rules="[(v) => !!v || 'Agent requis']"
-              ></v-text-field>
-              <v-text-field
-                v-model="editedAgent.email"
-                label="Email"
+              <v-text-field v-model="editedAgent.name" label="Agent"
+                :rules="[(v) => !!v || 'Agent requis']"></v-text-field>
+              <v-text-field v-model="editedAgent.email" label="Email" :rules="[
+                (v) => !!v || 'Email requis',
+                (v) => isValidEmail(v) || 'Email invalide',
+              ]"></v-text-field>
+              <v-text-field v-model="editedAgent.UserInfo.months" label="Nombre de mois" type="number" :rules="[
+                (v) => !!v || 'Nombre de mois requis',
+                (v) => v > 0 || 'Nombre de mois doit être supérieur à 0',
+              ]"></v-text-field>
+              <v-text-field v-model="editedAgent.UserInfo.soldeAncienConge" label="Reste Ancien Conge" type="number"
                 :rules="[
-                  (v) => !!v || 'Email requis',
-                  (v) => isValidEmail(v) || 'Email invalide',
-                ]"
-              ></v-text-field>
-              <v-text-field
-                v-model="editedAgent.UserInfo.months"
-                label="Nombre de mois"
-                type="number"
-                :rules="[
-                  (v) => !!v || 'Nombre de mois requis',
+                  (v) => !!v || 'Reste Ancien Conge requis',
                   (v) => v > 0 || 'Nombre de mois doit être supérieur à 0',
-                ]"
-              ></v-text-field>
-              <v-text-field
-                v-if="!isEditMode"
-                v-model="editedAgent.password"
-                label="Mot de passe"
-                type="password"
-                :rules="[(v) => !!v || 'Mot de passe requis']"
-              ></v-text-field>
-              <v-text-field
-                v-model="editedAgent.phoneNumber"
-                label="Numéro de téléphone"
-                :rules="[
-                  (v) => !!v || 'Numéro de téléphone requis',
-                  (v) =>
-                    /^\d{8}$/.test(v) ||
-                    'Numéro de téléphone invalide (8 chiffres)',
-                ]"
-              ></v-text-field>
-              <v-text-field
-                v-model="editedAgent.address"
-                label="Adresse"
-                :rules="[(v) => !!v || 'Adresse requise']"
-              ></v-text-field>
+                ]"></v-text-field>
+              <v-text-field v-if="!isEditMode" v-model="editedAgent.password" label="Mot de passe" type="password"
+                :rules="[(v) => !!v || 'Mot de passe requis']"></v-text-field>
+              <v-text-field v-model="editedAgent.phoneNumber" label="Numéro de téléphone" :rules="[
+                (v) => !!v || 'Numéro de téléphone requis',
+                (v) =>
+                  /^\d{8}$/.test(v) ||
+                  'Numéro de téléphone invalide (8 chiffres)',
+              ]"></v-text-field>
+              <v-text-field v-model="editedAgent.address" label="Adresse"
+                :rules="[(v) => !!v || 'Adresse requise']"></v-text-field>
             </v-form>
           </v-card-text>
           <v-card-actions>
@@ -119,13 +83,7 @@
             <v-btn color="blue-darken-1" variant="text" @click="closeDialog">
               {{ isViewMode ? 'Fermer' : 'Annuler' }}
             </v-btn>
-            <v-btn
-              v-if="!isViewMode"
-              color="blue-darken-1"
-              variant="text"
-              @click="saveAgent"
-              :disabled="!valid"
-            >
+            <v-btn v-if="!isViewMode" color="blue-darken-1" variant="text" @click="saveAgent" :disabled="!valid">
               Enregistrer
             </v-btn>
           </v-card-actions>
@@ -182,6 +140,7 @@ export default {
         { title: "Agent", align: "start", key: "name" },
         { title: "Email", key: "email" },
         { title: "Nombre de mois", key: "UserInfo.months" },
+        { title: "Reste Ancien Conge", key: "UserInfo.soldeAncienConge" },
         { title: "Numéro de téléphone", key: "phoneNumber" },
         { title: "Adresse", key: "address" },
         { title: "Actions", key: "actions", sortable: false },
@@ -191,10 +150,13 @@ export default {
         name: "",
         email: "",
         password: "",
-        months: 0,
         phoneNumber: "",
         address: "",
         role: "employe",
+        UserInfo: {
+          months: "",
+          soldeAncienConge: ''
+        },
       },
       defaultAgent: {
         id: null,
@@ -202,8 +164,9 @@ export default {
         email: "",
         password: "",
         UserInfo: {
-        months: ""
-    },
+          months: "",
+          soldeAncienConge: ''
+        },
         phoneNumber: "",
         address: "",
         role: "employe",
@@ -224,7 +187,7 @@ export default {
         address: 'Adresse',
         role: 'Rôle'
       };
-      
+
       return Object.entries(this.viewedAgent).reduce((acc, [key, value]) => {
         if (translations[key]) {
           acc[translations[key]] = value;
@@ -234,7 +197,7 @@ export default {
     }
   },
   methods: {
-    debouncedSearch: debounce(function() {
+    debouncedSearch: debounce(function () {
       this.fetchAgents();
     }, 300),
     async fetchAgents(newOptions) {
@@ -256,56 +219,33 @@ export default {
     openDialog(action, agent = null) {
       this.isEditMode = action === "edit";
       this.isViewMode = action === "view";
+
       if (action === "add") {
         this.dialogTitle = "Ajouter Agent";
-        this.editedAgent = { ...this.defaultAgent };
+        this.editedAgent = JSON.parse(JSON.stringify(this.defaultAgent)); // Deep copy
       } else if ((action === "edit" || action === "view") && agent) {
         this.dialogTitle = action === "edit" ? "Modifier Agent" : "Détails de l'Agent";
         if (action === "view") {
           this.viewedAgent = { ...agent };
         } else {
-          this.editedAgent = { ...agent };
-          console.log(this.editedAgent)
+          this.editedAgent = JSON.parse(JSON.stringify(agent)); // Deep copy
         }
-      } else if ((action === "edit" || action === "view") && !agent) {
-        console.error(`Attempted to ${action} an undefined agent`);
-        return;
       }
       this.dialog = true;
+      if (this.$refs.form) {
+        this.$refs.form.reset();
+      }
     },
     closeDialog() {
       this.dialog = false;
+      this.editedAgent = { ...this.defaultAgent }; // Reset the form data
       if (this.$refs.form) {
-        this.$refs.form.resetValidation();
+        this.$refs.form.reset(); // Reset the form
+        this.$refs.form.resetValidation(); // Reset validation
       }
     },
-    async saveAgent() {
-      if (this.$refs.form && this.$refs.form.validate()) {
-        if (this.editedAgent.id) {
-          try {
-            const agentToUpdate = { ...this.editedAgent };
-            delete agentToUpdate.password;
-            await this.$store.dispatch('agent/updateAgent', agentToUpdate);
-            this.fetchAgents();
-            this.closeDialog();
-            this.showSnackbar('Agent mis à jour avec succès', 'success');
-          } catch (error) {
-            console.error("Error updating agent:", error);
-            this.showSnackbar('Erreur lors de la mise à jour de l\'agent', 'error');
-          }
-        } else {
-          try {
-            await this.$store.dispatch('agent/createAgent', this.editedAgent);
-            this.fetchAgents();
-            this.closeDialog();
-            this.showSnackbar('Agent ajouté avec succès', 'success');
-          } catch (error) {
-            console.error("Error creating agent:", error);
-            this.showSnackbar('Erreur lors de l\'ajout de l\'agent', 'error');
-          }
-        }
-      }
-    },
+
+
     openDeleteConfirmation(id) {
       if (id) {
         this.selectedAgentId = id;
@@ -332,20 +272,12 @@ export default {
         this.selectedAgentId = null;
       }
     },
-    async resetPassword(email) {
-     
-      try {
-       await this.$store.dispatch('auth/forgotPassword', email); 
-        alert("email de réinisialisation est envoyé à"+email);
-      } catch (error) {
-        console.error("Error resetting password:", error);
-      }
-    },
     exportToExcel() {
       const ws = XLSX.utils.json_to_sheet(this.agents.map(agent => ({
         "Agent": agent.name,
         "Email": agent.email,
-        "Nombre de mois": agent.months,
+        "Nombre de mois": agent.UserInfo.months,
+        "Reste Ancien Conge": agent.UserInfo.soldeAncienConge,
         "Numéro de téléphone": agent.phoneNumber,
         "Adresse": agent.address,
       })));
@@ -363,6 +295,39 @@ export default {
       this.snackbarColor = color;
       this.snackbar = true;
     },
+    async saveAgent() {
+      if (this.$refs.form && this.$refs.form.validate()) {
+      const agentPayload = {
+      ...this.editedAgent,
+      months: this.editedAgent.UserInfo.months,
+      soldeAncienConge: this.editedAgent.UserInfo.soldeAncienConge
+    };
+
+    if (this.editedAgent.id) {
+      try {
+        delete agentPayload.password;
+        await this.$store.dispatch('agent/updateAgent', agentPayload);
+        this.fetchAgents();
+        this.closeDialog();
+        this.showSnackbar('Agent mis à jour avec succès', 'success');
+      } catch (error) {
+        console.error("Error updating agent:", error);
+        this.showSnackbar('Erreur lors de la mise à jour de l\'agent', 'error');
+      }
+    } else {
+      try {
+        delete agentPayload.UserInfo; // Remove nested object
+        await this.$store.dispatch('agent/createAgent', agentPayload);
+        this.fetchAgents();
+        this.closeDialog();
+        this.showSnackbar('Agent ajouté avec succès', 'success');
+      } catch (error) {
+        console.error("Error creating agent:", error);
+        this.showSnackbar('Erreur lors de l\'ajout de l\'agent', 'error');
+      }
+    }
+  }
+},
   },
   mounted() {
   },

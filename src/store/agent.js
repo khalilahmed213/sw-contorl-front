@@ -64,7 +64,14 @@ export default {
     },
     async createAgent({ dispatch }, agent) {
       try {
-        await axios.post('http://localhost:3000/api/agents', agent, {
+        const payload = {
+          ...agent,
+          UserInfo: {
+            months: agent.months,
+            soldeAncienConge: agent.soldeAncienConge
+          }
+        };
+        await axios.post('http://localhost:3000/api/agents', payload, {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
           },
@@ -75,14 +82,21 @@ export default {
         throw error;
       }
     },
+    
     async updateAgent({ dispatch }, agent) {
       try {
-        await axios.put(`http://localhost:3000/api/agents/${agent.id}`, agent, {
+        const payload = {
+          ...agent,
+          userInfo: {
+            months: agent.months,
+            soldeAncienConge: agent.soldeAncienConge
+          }
+        };
+        await axios.put(`http://localhost:3000/api/agents/${agent.id}`, payload, {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
           },
         });
-        dispatch('fetchAgents', { page: 1 });
       } catch (error) {
         console.error('Error updating agent:', error);
         throw error;
@@ -126,12 +140,11 @@ export default {
             Authorization: `Bearer ${getAccessToken()}`,
           },
         });
-        // Optionally handle success here
       } catch (error) {
         commit('SET_ERROR', error);
         throw error;
       } finally {
-        commit('SET_LOADING', false); // Set loading to false at the end
+        commit('SET_LOADING', false); 
       }
     },
   },
