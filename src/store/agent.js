@@ -76,7 +76,6 @@ export default {
             Authorization: `Bearer ${getAccessToken()}`,
           },
         });
-        dispatch('fetchAgents', { page: 1 });
       } catch (error) {
         console.error('Error creating agent:', error);
         throw error;

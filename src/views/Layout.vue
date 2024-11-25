@@ -51,7 +51,7 @@
       <v-app-bar-title class="text-h5">{{ currentRouteName }}</v-app-bar-title>
       <v-spacer></v-spacer>
     <div v-if="userRole !== 'admin'" >
-      <v-btn  disabled="userRole !== 'admin'" icon @click="goToProfile" size="large">
+      <v-btn icon @click="goToProfile" size="large">
         <v-avatar color="primary" size="48">
           <v-img src="https://via.placeholder.com/150" alt="Profile"></v-img>
         </v-avatar>
