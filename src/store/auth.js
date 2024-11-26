@@ -74,10 +74,28 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+    async resetPasswordProfile({ commit }, { id, password }) {
+      console.log(password)
+      try {
+        const response = await axios.put('http://localhost:3000/api/auth/resetpasswordprofile', { id, password },
+          {
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
+          }
+        );
+        return response.data; // Return the response message and status
+      } catch (error) {
+        console.error('Error resetting password:', error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || 'Failed to reset password');
+      }
+    },
+  
   clearError({ commit }) {
     commit('SET_ERROR', null);
   }
 };
+
 
 const getters = {
   isLoggedIn(state) {

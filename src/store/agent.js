@@ -9,14 +9,16 @@ export default {
     loading: false,
     error: null,
     total: 0,
-    allAgents: [], // New state for all agents
+    allAgents: [],
+    agentInfo:{}
   },
   getters: {
     agents: (state) => state.agents,
     loadingagent: (state) => state.loading,
     error: (state) => state.error,
     total: (state) => state.total,
-    allAgents: (state) => state.allAgents, // New getter for all agents
+    allAgents: (state) => state.allAgents, 
+    agentInfo: (state) => state. agentInfo, 
   },
   mutations: {
     SET_AGENTS(state, agents) {
@@ -33,6 +35,9 @@ export default {
     },
     SET_ALL_AGENTS(state, allAgents) {
       state.allAgents = allAgents;
+    },
+    SET_AGENT_INFO(state, agentData) {
+      state.agentInfo = agentData;
     },
   },
   actions: {
@@ -144,6 +149,23 @@ export default {
         throw error;
       } finally {
         commit('SET_LOADING', false); 
+      }
+    },
+    async fetchAgentInfo({ commit}, userId) {
+      try {
+        const response = await axios.get('http://localhost:3000/api/agents/userinfo', {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+          params: { userId:userId },
+        }); 
+        const agentData = response.data;
+        commit('SET_AGENT_INFO', agentData);
+      } catch (error) {
+        console.error('Error fetching agent details:', error);
+
+        // Optionally handle the error or return it
+        throw new Error(error.response?.data?.message || 'Failed to fetch agent details');
       }
     },
   },

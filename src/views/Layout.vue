@@ -50,7 +50,7 @@
       <v-app-bar-nav-icon @click="toggleMini" size="large"></v-app-bar-nav-icon>
       <v-app-bar-title class="text-h5">{{ currentRouteName }}</v-app-bar-title>
       <v-spacer></v-spacer>
-    <div v-if="userRole !== 'admin'" >
+    <div v-if="userRole !=='admin'" >
       <v-btn icon @click="goToProfile" size="large">
         <v-avatar color="primary" size="48">
           <v-img src="https://via.placeholder.com/150" alt="Profile"></v-img>

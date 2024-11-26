@@ -63,11 +63,7 @@ const routes = [
         name: 'Home Admin',
         component: Home
       },
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: Profile
-      },
+     
       {
         path: 'conge',
         name: 'Congé',
@@ -165,6 +161,11 @@ const routes = [
         path: 'pointage',
         name: 'pointage',
         component: pointage
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: Profile
       },
     
       
