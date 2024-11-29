@@ -57,89 +57,7 @@
           <template v-slot:item.commentaires="{ item }">
             {{ item.commentaires }}
           </template>
-          <template v-slot:item.actions="{ item, index }">
-            <v-icon
-              v-if="item.absence != 'N/A'"
-              @click="openDialog('edit', index)"
-              >mdi-pencil</v-icon
-            >
-            <v-icon v-else @click="openDialog('add', index)"
-              >mdi-plus-box</v-icon
-            >
-          </template>
         </v-data-table-server>
-    
-    <v-dialog v-model="dialog">
-      <v-card>
-        <v-card-text>
-          <v-text-field
-            v-model="editedItem.Agent"
-            label="Agent"
-            disabled
-          ></v-text-field>
-          <v-select
-            v-model="editedItem.environnement"
-            :items="['Onsite', 'Remote', 'Hybrid']"
-            label="Environnement"
-            v-if="editedItem.absence === 'Présent'"
-          ></v-select>
-          <v-select
-            v-model="editedItem.absence"
-            :items="['Présent', 'Absent']"
-            label="Absence"
-          ></v-select>
-          <v-text-field
-            v-model="editedItem.entree"
-            label="Entrée"
-            type="time"
-            v-if="editedItem.absence === 'Présent'"
-          ></v-text-field>
-          <v-text-field
-            v-model="editedItem.sortie"
-            label="Sortie"
-            type="time"
-            v-if="editedItem.absence === 'Présent'"
-          ></v-text-field>
-          <v-text-field
-            v-model="editedItem.entree1"
-            label="Entrée 1"
-            type="time"
-            v-if="
-              editedItem.absence === 'Présent' && !isScheduleRecurring
-            "
-          ></v-text-field>
-          <v-text-field
-            v-model="editedItem.sortie1"
-            label="Sortie 1"
-            type="time"
-            v-if="
-              editedItem.absence === 'Présent' && !isScheduleRecurring
-            "
-          ></v-text-field>
-          <v-textarea
-            v-model="editedItem.commentaires"
-            label="Commentaires"
-            rows="5"
-            v-if="
-              editedItem.absence === 'Présent' ||
-              editedItem.absence === 'Absent'
-            "
-          ></v-textarea>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="blue darken-1" text @click="closeDialog">Cancel</v-btn>
-          <v-btn
-            :disabled="isSaveDisabled"
-            color="blue darken-1"
-            text
-            @click="saveItem"
-            >Save</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  <div>{{ totalItems }}</div>
-
 </template>
 
 <script>
@@ -177,7 +95,6 @@ export default {
         },
         { title: "Prod", key: "prod" ,sortable:false},
         { title: "Commentaires", key: "commentaires",sortable:false },
-        { title: "Actions", key: "actions", sortable: false },
       ],
       headersRamadan: [
         { title: "Agent", key: "Agent",sortable:false },
@@ -187,7 +104,6 @@ export default {
         { title: "Sortie", key: "sortie" ,sortable:false},
         { title: "Prod", key: "prod" },
         { title: "Commentaires", key: "commentaires" ,sortable:false},
-        { title: "Actions", key: "actions", sortable: false,sortable:false },
       ],
       dialog: false,
       editedIndex: -1,

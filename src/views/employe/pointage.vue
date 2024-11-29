@@ -70,106 +70,92 @@ export default {
       environments: ['sur site', 'remote'],
       environmentSelected: false,
       currentTime: moment(),
-      presenceId: null, // Save the presence ID for updates
+      presenceId: null,
     };
   },
   methods: {
     ...mapActions('schedule', ['checkIfScheduleIsRecurring']),
-    ...mapActions(['addPointage', 'updatePresence']), // Include updatePresence action
+    ...mapActions(['addPointage', 'updatePresence']),
     async handleEnvironmentSelection() {
       this.environmentSelected = true;
-      localStorage.setItem('selectedEnvironment', this.selectedEnvironment);
-      localStorage.setItem('environmentSelected', true);
-      let date=new Date()
-      let env=this.selectedEnvironment;
-      const response = await this.addPointage({env,date,status:'en attente',UserId:this.currentUserId});
-      this.presenceId = response; // Store the ID from the response
-      localStorage.setItem('presenceId', this.presenceId); // Persist ID
+      const today = new Date().toLocaleDateString('fr-FR');
+      const response = await this.addPointage({
+        env: this.selectedEnvironment,
+        date: new Date(),
+        status: 'en attente',
+        UserId: this.currentUserId,
+      });
+      this.presenceId = response;
+      localStorage.setItem('pointageData', JSON.stringify({
+        presenceId: this.presenceId,
+        selectedEnvironment: this.selectedEnvironment,
+        environmentSelected: true,
+        currentButton: this.currentButton,
+        pointageDate: today,
+      }));
     },
-
     async handleClick(buttonNumber) {
-      const currentTime = moment().format('HH:mm:ss'); // Format current time
+      const currentTime = moment().format('HH:mm:ss');
+      const fieldMap = { 1: 'entree', 2: 'sortie', 3: 'entree1', 4: 'sortie1' };
+      const fieldToUpdate = fieldMap[buttonNumber];
 
-      if (this.presenceId) {
-        // Determine the field to update based on the button clicked
-        const fieldMap = {
-          1: 'entree',
-          2: 'sortie',
-          3: 'entree1',
-          4: 'sortie1'
-        };
-        const fieldToUpdate = fieldMap[buttonNumber];
-
-        // Call updatePresence action to update the time for the specific field
-        await this.updatePresence({
-          id: this.presenceId,
-          [fieldToUpdate]: currentTime
-        });
-
-      } else {
-        alert('Presence ID not found. Please select an environment first.');
-      }
+      await this.updatePresence({ id: this.presenceId, [fieldToUpdate]: currentTime });
 
       if (this.currentButton < 4) {
         this.currentButton++;
-        localStorage.setItem('currentButton', this.currentButton); // Save current button state
+        this.updateLocalStorage();
       } else {
         this.isCompleted = true;
         localStorage.setItem('pointageCompleted', true);
-        localStorage.setItem('completionDate', new Date().toLocaleDateString('fr-FR'));
+        localStorage.removeItem('pointageData');
       }
     },
-
+    updateLocalStorage() {
+      const pointageData = JSON.parse(localStorage.getItem('pointageData'));
+      pointageData.currentButton = this.currentButton;
+      localStorage.setItem('pointageData', JSON.stringify(pointageData));
+    },
+    restorePointageState() {
+      const pointageData = JSON.parse(localStorage.getItem('pointageData'));
+      this.presenceId = pointageData.presenceId;
+      this.selectedEnvironment = pointageData.selectedEnvironment;
+      this.environmentSelected = pointageData.environmentSelected;
+      this.currentButton = pointageData.currentButton;
+    },
     updateTime() {
       this.currentTime = moment();
-    }
+    },
   },
   computed: {
     formattedDate() {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      const date = new Date();
-      return new Intl.DateTimeFormat('fr-FR', options).format(date);
+      return new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
     },
-    ...mapGetters('schedule', ['isRecurring']),
     formattedTime() {
       return this.currentTime.format('HH:mm:ss');
     },
     currentUserId() {
-      return this.$store.state.auth.user.id; // Get current user ID
+      return this.$store.state.auth.user.id;
     },
   },
   mounted() {
     setInterval(this.updateTime, 1000);
-    const completionDate = localStorage.getItem('completionDate');
-    const today = new Date().toLocaleDateString('fr-FR');
-
-    if (localStorage.getItem('pointageCompleted') && completionDate === today) {
+    const pointageData = localStorage.getItem('pointageData');
+    if (pointageData) {
+      const parsedData = JSON.parse(pointageData);
+      const today = new Date().toLocaleDateString('fr-FR');
+      if (parsedData.pointageDate === today) {
+        this.restorePointageState();
+      } else {
+        localStorage.removeItem('pointageData');
+      }
+    }
+    if (localStorage.getItem('pointageCompleted')) {
       this.isCompleted = true;
-    } else {
-      localStorage.removeItem('pointageCompleted');
-      localStorage.removeItem('completionDate');
-
-      const savedEnvironment = localStorage.getItem('selectedEnvironment');
-      if (savedEnvironment) {
-        this.selectedEnvironment = savedEnvironment;
-        this.environmentSelected = localStorage.getItem('environmentSelected') === 'true';
-      }
-
-      const savedButton = localStorage.getItem('currentButton');
-      if (savedButton) {
-        this.currentButton = parseInt(savedButton);
-      }
-
-      // Retrieve presenceId from localStorage if it exists
-      const savedPresenceId = localStorage.getItem('presenceId');
-      if (savedPresenceId) {
-        this.presenceId = savedPresenceId;
-      }
     }
   },
   async created() {
     await this.checkIfScheduleIsRecurring(new Date());
-  }
+  },
 };
 </script>
 
