@@ -1,9 +1,21 @@
 <template>
   <v-container class="d-flex justify-center align-center" style="height: 80vh;">
     <v-card v-if="!isCompleted" class="pa-10" elevation="10" max-width="500">
+       <div mr-10 v-if="environmentSelected==true&&isCompleted==false">
+        <v-btn
+          @click="handleRefreshClick"
+          icon
+          color="primary"
+          class="ml-4"
+        >
+        
+          <v-icon>mdi-refresh</v-icon>
+        </v-btn>
+      </div>
       <v-card-title class="text-h4 text-center">
         {{ formattedDate }}<br>
         {{ formattedTime }}
+       
       </v-card-title>
 
       <!-- Step 1: Environment Selection -->
@@ -32,16 +44,16 @@
 
       <!-- Step 2: Buttons to Point -->
       <v-card-text v-else class="text-center">
-        <v-btn v-if="currentButton === 1" @click="handleClick(1)" color="primary" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
+        <v-btn v-if="currentButton === 1" @click="handleClick(1)" color="primary" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.morningEntry">
           Début Matin
         </v-btn>
-        <v-btn v-if="currentButton === 2" @click="handleClick(2)" color="success" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
+        <v-btn v-if="currentButton === 2" @click="handleClick(2)" color="success" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.morningExit">
           Fin Matin
         </v-btn>
-        <v-btn v-if="currentButton === 3" @click="handleClick(3)" color="warning" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
+        <v-btn v-if="currentButton === 3" @click="handleClick(3)" color="warning" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.breakEntry">
           Début après Midi
         </v-btn>
-        <v-btn v-if="currentButton === 4" @click="handleClick(4)" color="error" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle">
+        <v-btn v-if="currentButton === 4" @click="handleClick(4)" color="error" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.afternoonExit">
           Fin Après Midi
         </v-btn>
       </v-card-text>
@@ -57,6 +69,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import moment from 'moment';
+import axios from 'axios';
 
 export default {
   data() {
@@ -71,6 +84,13 @@ export default {
       environmentSelected: false,
       currentTime: moment(),
       presenceId: null,
+      buttonStatus: {
+        morningEntry: true,
+        morningExit: true,
+        breakEntry:true,
+        afternoonEntry: true,
+        afternoonExit: true,
+      },
     };
   },
   methods: {
@@ -94,12 +114,17 @@ export default {
         pointageDate: today,
       }));
     },
+   async handleRefreshClick(){
+    await this.checkButtonStatus()
+     
+
+    },
     async handleClick(buttonNumber) {
       const currentTime = moment().format('HH:mm:ss');
       const fieldMap = { 1: 'entree', 2: 'sortie', 3: 'entree1', 4: 'sortie1' };
       const fieldToUpdate = fieldMap[buttonNumber];
 
-      await this.updatePresence({ id: this.presenceId, [fieldToUpdate]: currentTime });
+      await this.updatePresence({ id:this.presenceId, [fieldToUpdate]: currentTime });
 
       if (this.currentButton < 4) {
         this.currentButton++;
@@ -124,6 +149,18 @@ export default {
     },
     updateTime() {
       this.currentTime = moment();
+    },
+    async checkButtonStatus() {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/presence/checkButtonStatus/${this.presenceId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        this.buttonStatus = response.data;
+      } catch (error) {
+        console.error('Error checking button status:', error);
+      }
     },
   },
   computed: {
