@@ -29,9 +29,7 @@ const actions = {
     try {
       const response = await axios.get('http://localhost:3000/api/presence/fetch', {
         params: { dateselect, page, itemsPerPage },
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('setTodayPresenceAndAbsence', response.data.data);
       commit('setTotalItems', response.data.pagination.totalItems);
@@ -39,12 +37,11 @@ const actions = {
       console.error("Error fetching presence and absence:", error);
     }
   },
+
   async updatePresence({ dispatch }, presenceData) {
     try {
       await axios.put('http://localhost:3000/api/presence/addtimes', presenceData, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
     } catch (error) {
@@ -52,27 +49,23 @@ const actions = {
       throw error;
     }
   },
+
   async addPointage({ commit }, { env, date, status, UserId }) {
     try {
       const response = await axios.post('http://localhost:3000/api/presence/addpointage', null, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        },
-        params: {
-          env, date, status, UserId
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        params: { env, date, status, UserId }
       });
       return response.data;
     } catch (error) {
       console.log(error);
     }
   },
+
   async getPresences({ commit }) {
     try {
       const response = await axios.get('http://localhost:3000/api/presence/getPresences', {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('setPresenceForAcceptance', response.data);
       return response.data;
@@ -81,12 +74,11 @@ const actions = {
       throw error;
     }
   },
+
   async togglePresenceStatus({ commit, dispatch }, { id, action, UserId, raison }) {
     try {
       const response = await axios.post('http://localhost:3000/api/presence/toggle-presence', { id, action, UserId, raison }, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
       return response.data;
@@ -98,13 +90,12 @@ const actions = {
       commit('SET_LOADING_STATUS', false);
     }
   },
+
   async fetchPresence({ commit }, presenceId) {
     commit('SET_PRESENCE_LOADING', true);
     try {
       const response = await axios.get(`http://localhost:3000/api/presence/${presenceId}`, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('SET_PRESENCE', response.data);
     } catch (error) {
@@ -113,16 +104,12 @@ const actions = {
       commit('SET_PRESENCE_LOADING', false);
     }
   },
+
   async checkButtonStatus({ commit }, { buttonNumber, UserId }) {
     try {
       const response = await axios.get('http://localhost:3000/api/presence/checkButtonStatus', {
-        params: {
-          buttonNumber,
-          UserId
-        },
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        params: { buttonNumber, UserId },
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       return response.data;
     } catch (error) {
@@ -130,12 +117,11 @@ const actions = {
       throw error;
     }
   },
+
   async confirmTallying({ commit, dispatch }, { presenceId, tallyingPoint, status }) {
     try {
       const response = await axios.post('http://localhost:3000/api/presence/confirmTallying', { presenceId, tallyingPoint, status }, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
       return response.data;
@@ -147,12 +133,11 @@ const actions = {
       commit('SET_LOADING_STATUS', false);
     }
   },
+
   async updateOverallStatus({ commit, dispatch }, { presenceId, status }) {
     try {
       const response = await axios.post('http://localhost:3000/api/presence/updateOverallStatus', { presenceId, status }, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
       return response.data;
@@ -164,12 +149,11 @@ const actions = {
       commit('SET_LOADING_STATUS', false);
     }
   },
+
   async togglePresenceStatus({ commit, dispatch }, { id, status, UserId }) {
     try {
       const response = await axios.post('http://localhost:3000/api/presence/toggle-presence-status', { id, status, UserId }, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
       return response.data;
@@ -185,14 +169,27 @@ const actions = {
   async updatePresenceField({ commit, dispatch }, { id, field, status }) {
     try {
       const response = await axios.post('http://localhost:3000/api/presence/update-presence-field', { id, field, status }, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`
-        }
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while updating presence field';
+      commit('SET_ERROR', errorMessage);
+      throw error;
+    } finally {
+      commit('SET_LOADING_STATUS', false);
+    }
+  },
+  async updateAllStatuses({ commit }, records) {
+    try {
+      const response = await axios.post('http://localhost:3000/api/presence/update-all-statuses', records, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` }
+      });
+      await dispatch('getPresences');
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'An error occurred while updating all statuses.';
       commit('SET_ERROR', errorMessage);
       throw error;
     } finally {
