@@ -77,6 +77,14 @@
             {{ item.sortie1 }}
           </div>
         </template>
+        <template v-slot:item.overallStatus="{ item }">
+  <div
+    class="custom-chip"
+    :style="{ backgroundColor: statusColors[item.overallStatus] || statusColors.default }"
+  >
+    {{ item.overallStatus == 'true' ? 'accepté' : item.overallStatus }}
+  </div>
+</template>
       </v-data-table-server>
     </v-card>
 
@@ -89,7 +97,7 @@
     </v-snackbar>
   </v-container>
 </template>
-
+ 
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import * as XLSX from 'xlsx';
@@ -113,6 +121,7 @@ export default {
         { title: "Retard Total", key: "retardtotal", sortable: false },
         { title: "Retard Matin", key: "retardm", sortable: false },
         { title: "Retard Après-Midi", key: "retardam", sortable: false },
+        { title: "staut global", key: "overallStatus", sortable: false },
         { title: "Actions", key: "actions", sortable: false },
       ],
       options: {
@@ -152,7 +161,7 @@ export default {
     this.currentItem = item;
     this.absenceModal = true;
   },
-    async confirmStatus(item, action) {
+  async confirmStatus(item, action) {
   try {
     const status = action === 'accept' ? 'true' : 'false';
     let currentStep = this.determineCurrentStep(item);
@@ -162,22 +171,28 @@ export default {
       return;
     }
 
+    // Check if the current step is 'overallStatus' and the action is 'reject'
     if (currentStep === 'overallStatus' && action === 'reject') {
-      this.openAbsenceReasonModal(item);
+      // Redirect to the absence page
+      this.$router.push({ name: 'Absence' });
       return;
     }
 
+    // Update the presence field
     await this.updatePresenceField({
       id: item.id,
       field: currentStep,
       status: status,
     });
 
+    // Save progress
     this.saveProgress(item.id, currentStep, status);
 
+    // Show a success snackbar
     this.showSnackbar(`Step ${currentStep} marked as ${status} successfully`, 'success');
   } catch (error) {
-    this.showSnackbar(`Error marking step as ${action}`, 'error');
+    // Show an error snackbar
+    this.showSnackbar(`Error marking step as ${error}`, 'error');
   }
 },
     determineCurrentStep(item) {
@@ -190,7 +205,7 @@ export default {
 },
     isAllStepsConfirmed(item) {
       return (
-        item.morningEntryStatus !== null &&
+        item.mrniongEntryStatus !== null &&
         item.morningExitStatus !== null &&
         item.afternoonEntryStatus !== null &&
         item.afternoonExitStatus !== null

@@ -33,6 +33,18 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+  async addAbsence({ commit }, absence) {
+    try {
+    await axios.post('http://localhost:3000/api/absence', absence, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
+    } catch (error) {
+      console.error('Error adding absence:', error);
+      throw error;
+    }
+  },
 };
 
 const mutations = {
