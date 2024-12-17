@@ -13,7 +13,6 @@
       class="mb-8"
     /> 
   </div>
-      
         <v-data-table-server
           :headers="!isScheduleRecurring ? headersRecurring : headersRamadan"
           :items="todayPresenceAndAbsence"

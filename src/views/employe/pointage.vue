@@ -6,6 +6,7 @@
       <v-card-title class="text-h4 text-center">
         {{ formattedDate }}<br />
         {{ formattedTime }}
+        {{ bool }}
       </v-card-title>
 
       <!-- Loading, Errors, or Messages -->
@@ -114,7 +115,7 @@
 
 <script>
 import moment from "moment";
-import { mapActions } from "vuex";
+import { mapActions,mapGetters} from "vuex";
 import axios from "axios";
 
 export default {
@@ -135,6 +136,7 @@ export default {
         afternoonEntry: true,
         afternoonExit: true,
       },
+      bool:null
     };
   },
   computed: {
@@ -151,6 +153,7 @@ export default {
     currentUserId() {
       return this.$store.state.auth.user.id;
     },
+    ...mapGetters('schedule',["isRecurring"]),
   },
   methods: {
     ...mapActions(["addPointage", "updatePresence"]),
@@ -207,7 +210,15 @@ async handleRefreshClick(){
       }
       this.saveState();
     },
-
+async loadbool(){
+  const response = await axios.get(`http://localhost:3000/api/schedules/getisramadan`, {
+        params: { date:new Date() },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      this.bool=response.data.isRamadan
+},
     saveState() {
       localStorage.setItem(
         "pointageData",
@@ -276,6 +287,7 @@ async handleRefreshClick(){
   async created() {
     await this.fetchCongeToday();
     await this.fetchPenaliteToday()
+    await this.loadbool()
     this.loading = false;
   },
   mounted() {
