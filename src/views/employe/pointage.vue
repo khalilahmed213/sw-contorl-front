@@ -1,37 +1,48 @@
 <template>
   <v-container class="d-flex justify-center align-center" style="height: 80vh;">
+    <!-- Card for Pointage -->
     <v-card v-if="!isCompleted" class="pa-10" elevation="10" max-width="500">
-       <div mr-10 v-if="environmentSelected==true&&isCompleted==false">
-        <v-btn
-          @click="handleRefreshClick"
-          icon
-          color="primary"
-          class="ml-4"
-        >
-        
-          <v-icon>mdi-refresh</v-icon>
-        </v-btn>
-      </div>
+      <!-- Date & Time -->
       <v-card-title class="text-h4 text-center">
-        {{ formattedDate }}<br>
+        {{ formattedDate }}<br />
         {{ formattedTime }}
-       
       </v-card-title>
 
-      <!-- Step 1: Environment Selection -->
-      <v-card-text v-if="!environmentSelected" class="text-center">
+      <!-- Loading, Errors, or Messages -->
+      <v-card-text v-if="loading" class="text-center">
+        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+      </v-card-text>
+      <v-card-text v-else-if="error" class="text-center">
+        <p>{{ error }}</p>
+      </v-card-text>
+      <v-card-text v-else-if="hasConge" class="text-center">
+        <p>Vous ne pouvez pas pointer aujourd'hui, vous avez un congé.</p>
+      </v-card-text>
+      <v-card-text v-else-if="hasPenalite" class="text-center">
+        <p>Vous ne pouvez pas pointer aujourd'hui, vous avez une pénalité.</p>
+      </v-card-text>
+
+      <!-- Main Content -->
+      <v-card-text v-else class="text-center">
+        <!-- Refresh Button -->
+        <div v-if="environmentSelected">
+          <v-btn @click="handleRefreshClick" icon color="primary" class="ml-4">
+            <v-icon>mdi-refresh</v-icon>
+          </v-btn>
+        </div>
+
+        <!-- Environment Selection -->
         <v-select
-          width="300"
+          v-if="!environmentSelected"
           v-model="selectedEnvironment"
           :items="environments"
           label="Choisissez votre environnement"
           variant="outlined"
-          dense class="ma-4"
+          dense
+          class="ma-4"
         ></v-select>
-
-        <!-- Suivant Button -->
         <v-btn
-          v-if="selectedEnvironment"
+          v-if="selectedEnvironment && !environmentSelected"
           @click="handleEnvironmentSelection"
           color="primary"
           class="ma-4"
@@ -40,24 +51,59 @@
         >
           Suivant
         </v-btn>
-      </v-card-text>
 
-      <!-- Step 2: Buttons to Point -->
-      <v-card-text v-else class="text-center">
-        <v-btn v-if="currentButton === 1" @click="handleClick(1)" color="primary" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.morningEntry">
+        <!-- Pointage Buttons -->
+        <v-btn
+          v-if="currentButton === 1 && environmentSelected"
+          @click="handleClick(1)"
+          color="primary"
+          class="ma-4"
+          elevation="10"
+          rounded
+          size="x-large"
+        >
           Début Matin
         </v-btn>
-        <v-btn v-if="currentButton === 2" @click="handleClick(2)" color="success" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.morningExit">
+        <v-btn
+          v-if="currentButton === 2"
+          @click="handleClick(2)"
+          color="success"
+          class="ma-4"
+          elevation="10"
+          rounded
+          size="x-large"
+          :disabled="buttonStatus.morningExit"
+        >
           Fin Matin
         </v-btn>
-        <v-btn v-if="currentButton === 3" @click="handleClick(3)" color="warning" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.breakEntry">
-          Début après Midi
+        <v-btn
+          v-if="currentButton === 3"
+          @click="handleClick(3)"
+          color="warning"
+          class="ma-4"
+          elevation="10"
+          rounded
+          size="x-large"
+          :disabled="buttonStatus.afternoonEntry"
+        >
+          Début Après Midi
         </v-btn>
-        <v-btn v-if="currentButton === 4" @click="handleClick(4)" color="error" class="ma-4" elevation="10" rounded size="x-large" :style="buttonStyle" :disabled="!buttonStatus.afternoonExit">
+        <v-btn
+          v-if="currentButton === 4"
+          @click="handleClick(4)"
+          color="error"
+          class="ma-4"
+          elevation="10"
+          rounded
+          size="x-large"
+          :disabled="buttonStatus.afternoonExit"
+        >
           Fin Après Midi
         </v-btn>
       </v-card-text>
     </v-card>
+
+    <!-- Completed State -->
     <v-card v-else class="pa-10" elevation="10" max-width="500">
       <v-card-title class="text-h4 text-center">
         Fin de pointage
@@ -67,146 +113,173 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
-import moment from 'moment';
-import axios from 'axios';
+import moment from "moment";
+import { mapActions } from "vuex";
+import axios from "axios";
 
 export default {
   data() {
     return {
+      hasConge: false,
+      hasPenalite: false,
+      loading: true,
+      error: null,
       currentButton: 1,
-      buttonStyle: {
-        transition: 'transform 0.2s',
-      },
       isCompleted: false,
       selectedEnvironment: null,
-      environments: ['sur site', 'remote'],
+      environments: ["sur site", "remote"],
       environmentSelected: false,
-      currentTime: moment(),
       presenceId: null,
       buttonStatus: {
-        morningEntry: true,
         morningExit: true,
-        breakEntry:true,
         afternoonEntry: true,
         afternoonExit: true,
       },
     };
   },
-  methods: {
-    ...mapActions('schedule', ['checkIfScheduleIsRecurring']),
-    ...mapActions(['addPointage', 'updatePresence']),
-    async handleEnvironmentSelection() {
-      this.environmentSelected = true;
-      const today = new Date().toLocaleDateString('fr-FR');
-      const response = await this.addPointage({
-        env: this.selectedEnvironment,
-        date: new Date(),
-        status: 'en attente',
-        UserId: this.currentUserId,
-      });
-      this.presenceId = response;
-      localStorage.setItem('pointageData', JSON.stringify({
-        presenceId: this.presenceId,
-        selectedEnvironment: this.selectedEnvironment,
-        environmentSelected: true,
-        currentButton: this.currentButton,
-        pointageDate: today,
-      }));
-    },
-   async handleRefreshClick(){
-    await this.checkButtonStatus()
-     
-
-    },
-    async handleClick(buttonNumber) {
-      const currentTime = moment().format('HH:mm:ss');
-      const fieldMap = { 1: 'entree', 2: 'sortie', 3: 'entree1', 4: 'sortie1' };
-      const fieldToUpdate = fieldMap[buttonNumber];
-
-      await this.updatePresence({ id:this.presenceId, [fieldToUpdate]: currentTime });
-
-      if (this.currentButton < 4) {
-        this.currentButton++;
-        this.updateLocalStorage();
-      } else {
-        this.isCompleted = true;
-        localStorage.setItem('pointageCompleted', true);
-        localStorage.removeItem('pointageData');
-      }
-    },
-    updateLocalStorage() {
-      const pointageData = JSON.parse(localStorage.getItem('pointageData'));
-      pointageData.currentButton = this.currentButton;
-      localStorage.setItem('pointageData', JSON.stringify(pointageData));
-    },
-    restorePointageState() {
-      const pointageData = JSON.parse(localStorage.getItem('pointageData'));
-      this.presenceId = pointageData.presenceId;
-      this.selectedEnvironment = pointageData.selectedEnvironment;
-      this.environmentSelected = pointageData.environmentSelected;
-      this.currentButton = pointageData.currentButton;
-    },
-    updateTime() {
-      this.currentTime = moment();
-    },
-    async checkButtonStatus() {
-      try {
-        const response = await axios.get(`http://localhost:3000/api/presence/checkButtonStatus/${this.presenceId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
-        this.buttonStatus = response.data;
-      } catch (error) {
-        console.error('Error checking button status:', error);
-      }
-    },
-  },
   computed: {
     formattedDate() {
-      return new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
+      return new Intl.DateTimeFormat("fr-FR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date());
     },
     formattedTime() {
-      return this.currentTime.format('HH:mm:ss');
+      return moment().format("HH:mm:ss");
     },
     currentUserId() {
       return this.$store.state.auth.user.id;
     },
   },
-  mounted() {
-    setInterval(this.updateTime, 1000);
-    const pointageData = localStorage.getItem('pointageData');
-    if (pointageData) {
-      const parsedData = JSON.parse(pointageData);
-      const today = new Date().toLocaleDateString('fr-FR');
-      if (parsedData.pointageDate === today) {
-        this.restorePointageState();
-      } else {
-        localStorage.removeItem('pointageData');
+  methods: {
+    ...mapActions(["addPointage", "updatePresence"]),
+
+    async fetchCongeToday() {
+      try {
+        const response = await axios.get("/api/presence/conge/today");
+        this.hasConge = response.data.hasConge || false;
+      } catch (error) {
+        console.error("Error fetching conge status:", error);
       }
-    }
-    if (localStorage.getItem('pointageCompleted')) {
-      this.isCompleted = true;
-    }
+    },
+async handleRefreshClick(){
+  const response = await axios.get('http://localhost:3000/api/presence/checkButtonStatus', {
+          params: { presenceId: this.presenceId, buttonNumber: this.currentButton },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        if (this.currentButton == 2) {
+          this.buttonStatus.morningExit = response.data.disabled;
+        }
+        if (this.currentButton == 3) {
+          this.buttonStatus.afternoonEntry = response.data.disabled;
+        }
+        if (this.currentButton == 4) {
+          this.buttonStatus.afternoonExit = response.data.disabled;
+        }
+},
+    async handleEnvironmentSelection() {
+      this.environmentSelected = true;
+      const response = await this.addPointage({
+        env: this.selectedEnvironment,
+        date: new Date(),
+        status: "en attente",
+        UserId: this.currentUserId,
+      });
+      this.presenceId = response;
+      this.saveState();
+    },
+
+    async handleClick(buttonNumber) {
+      const time = moment().format("HH:mm:ss");
+      const fieldMap = { 1: "entree", 2: "sortie", 3: "entree1", 4: "sortie1" };
+      await this.updatePresence({
+        id: this.presenceId,
+        [fieldMap[buttonNumber]]: time,
+      });
+      if (buttonNumber < 4) {
+        this.currentButton++;
+      } else {
+        this.isCompleted = true;
+        localStorage.setItem("pointageCompleted", "true");
+      }
+      this.saveState();
+    },
+
+    saveState() {
+      localStorage.setItem(
+        "pointageData",
+        JSON.stringify({
+          presenceId: this.presenceId,
+          selectedEnvironment: this.selectedEnvironment,
+          environmentSelected: this.environmentSelected,
+          currentButton: this.currentButton,
+          isCompleted: this.isCompleted,
+          lastPointageDate: moment().format("YYYY-MM-DD"), // Save current date
+        })
+      );
+    },
+
+    restoreState() {
+      const savedState = JSON.parse(localStorage.getItem("pointageData"));
+      const today = moment().format("YYYY-MM-DD");
+
+      if (savedState && savedState.lastPointageDate === today) {
+        // Restore state if the last saved date matches today's date
+        this.presenceId = savedState.presenceId;
+        this.selectedEnvironment = savedState.selectedEnvironment;
+        this.environmentSelected = savedState.environmentSelected;
+        this.currentButton = savedState.currentButton;
+        this.isCompleted = savedState.isCompleted;
+      } else {
+        // Reset state for a new day
+        this.resetPointageState();
+      }
+    },
+
+    resetPointageState() {
+      this.presenceId = null;
+      this.selectedEnvironment = null;
+      this.environmentSelected = false;
+      this.currentButton = 1;
+      this.isCompleted = false;
+
+      localStorage.removeItem("pointageData");
+    },
+    async fetchCongeToday() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/presence/conge/today', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        });
+        this.hasConge = response.data.hasConge || false;
+      } catch (error) {
+        console.error('Error fetching conge status:', error);
+        this.error = 'Failed to fetch conge status.';
+      }
+    },
+    async fetchPenaliteToday() {
+      try {
+        const response = await axios.get('http://localhost:3000/api/presenece/penalite/today', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        });
+        this.hasPenalite = response.data.hasPenalite || false;
+      } catch (error) {
+        console.error('Error fetching penalite status:', error);
+        if (!this.error) {
+          this.error = 'Failed to fetch penalite status.';
+        }
+      }
+    },
   },
   async created() {
-    await this.checkIfScheduleIsRecurring(new Date());
+    await this.fetchCongeToday();
+    await this.fetchPenaliteToday()
+    this.loading = false;
+  },
+  mounted() {
+    this.restoreState();
   },
 };
 </script>
-
-<style>
-.v-card {
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-  border-radius: 20px;
-}
-
-.v-btn {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-}
-
-.v-btn:hover {
-  transform: scale(1.1);
-}
-</style>

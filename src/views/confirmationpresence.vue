@@ -37,6 +37,7 @@
           <v-icon
             color="red"
             @click="confirmStatus(item, 'reject')"
+            :disabled="item.overallStatus=='absent'"
           >
             mdi-close
           </v-icon>
@@ -155,7 +156,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['getPresences', 'togglePresenceStatus', 'updatePresenceField']),
+    ...mapActions(['getPresences', 'togglePresenceStatus', 'updatePresenceField','updateAllStatuses']),
     ...mapActions({ fetchAllAgents: "agent/fetchAllAgents" }),
     openAbsenceReasonModal(item) {
     this.currentItem = item;

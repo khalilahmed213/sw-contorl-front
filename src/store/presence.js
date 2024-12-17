@@ -11,6 +11,9 @@ const state = {
   presencesforacceptance: [],
   loading: false,
   presenceLoading: false,
+  hasCongeToday: null,
+  hasPenaliteToday: null,
+  
 };
 
 const getters = {
@@ -22,6 +25,8 @@ const getters = {
   totalPages: state => state.totalPages,
   presencesforacceptance: state => state.presencesforacceptance,
   presence: state => state.presencesforacceptance.find(p => p.UserId === state.auth.user.id),
+  hasCongeToday: state => state.hasCongeToday,
+  hasPenaliteToday: state => state.hasPenaliteToday,
 };
 
 const actions = {
@@ -242,6 +247,13 @@ const mutations = {
     } else {
       state.presencesforacceptance.push(presence);
     }
+  },
+  setHasCongeToday(state, status) {
+    state.hasCongeToday = status;
+  },
+  
+  setHasPenaliteToday(state, status) {
+    state.hasPenaliteToday = status;
   },
 };
 
