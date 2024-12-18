@@ -6,7 +6,6 @@
       <v-card-title class="text-h4 text-center">
         {{ formattedDate }}<br />
         {{ formattedTime }}
-        {{ bool }}
       </v-card-title>
 
       <!-- Loading, Errors, or Messages -->
@@ -25,13 +24,6 @@
 
       <!-- Main Content -->
       <v-card-text v-else class="text-center">
-        <!-- Refresh Button -->
-        <div v-if="environmentSelected">
-          <v-btn @click="handleRefreshClick" icon color="primary" class="ml-4">
-            <v-icon>mdi-refresh</v-icon>
-          </v-btn>
-        </div>
-
         <!-- Environment Selection -->
         <v-select
           v-if="!environmentSelected"
@@ -54,53 +46,105 @@
         </v-btn>
 
         <!-- Pointage Buttons -->
-        <v-btn
-          v-if="currentButton === 1 && environmentSelected"
-          @click="handleClick(1)"
-          color="primary"
-          class="ma-4"
-          elevation="10"
-          rounded
-          size="x-large"
-        >
-          Début Matin
-        </v-btn>
-        <v-btn
-          v-if="currentButton === 2"
-          @click="handleClick(2)"
-          color="success"
-          class="ma-4"
-          elevation="10"
-          rounded
-          size="x-large"
-          :disabled="buttonStatus.morningExit"
-        >
-          Fin Matin
-        </v-btn>
-        <v-btn
-          v-if="currentButton === 3"
-          @click="handleClick(3)"
-          color="warning"
-          class="ma-4"
-          elevation="10"
-          rounded
-          size="x-large"
-          :disabled="buttonStatus.afternoonEntry"
-        >
-          Début Après Midi
-        </v-btn>
-        <v-btn
-          v-if="currentButton === 4"
-          @click="handleClick(4)"
-          color="error"
-          class="ma-4"
-          elevation="10"
-          rounded
-          size="x-large"
-          :disabled="buttonStatus.afternoonExit"
-        >
-          Fin Après Midi
-        </v-btn>
+        <div v-if="environmentSelected">
+          <!-- Recurring Schedule (bool === true) -->
+          <div v-if="!bool">
+            <div class="mr-10" v-if="environmentSelected && !isCompleted">
+              <v-btn
+                @click="handleRefreshClick"
+                icon
+                color="primary"
+                class="ml-4"
+              >
+                <v-icon>mdi-refresh</v-icon>
+              </v-btn>
+            </div>
+            <v-btn
+              v-if="currentButton === 1"
+              @click="handleClick(1)"
+              color="primary"
+              class="ma-4"
+              elevation="10"
+              rounded
+              size="x-large"
+             
+            >
+              Début Matin
+            </v-btn>
+            <v-btn
+              v-if="currentButton === 2"
+              @click="handleClick(2)"
+              color="success"
+              class="ma-4"
+              elevation="10"
+              rounded
+              size="x-large"
+              :disabled="buttonDisabled.morningExit"
+            >
+              Fin Matin
+            </v-btn>
+            <v-btn
+              v-if="currentButton === 3"
+              @click="handleClick(3)"
+              color="warning"
+              class="ma-4"
+              elevation="10"
+              rounded
+              size="x-large"
+              :disabled="buttonDisabled.afternoonEntry"
+            >
+              Début Après Midi
+            </v-btn>
+            <v-btn
+              v-if="currentButton === 4"
+              @click="handleClick(4)"
+              color="error"
+              class="ma-4"
+              elevation="10"
+              rounded
+              size="x-large"
+              :disabled="buttonStatus.afternoonExit"
+            >
+              Fin Après Midi
+            </v-btn>
+          </div>
+          <!-- Non-Recurring Schedule (bool === false) -->
+          <div v-else>
+            <div class="mr-10" v-if="environmentSelected && !isCompleted">
+              <v-btn
+                @click="handleRefreshClick"
+                icon
+                color="primary"
+                class="ml-4"
+              >
+                <v-icon>mdi-refresh</v-icon>
+              </v-btn>
+            </div>
+            <v-btn
+              v-if="currentButton === 1"
+              @click="handleClick(1)"
+              color="primary"
+              class="ma-4"
+              elevation="10"
+              rounded
+              size="x-large"
+            >
+              Début Matin
+            </v-btn>
+            <v-btn
+              v-if="currentButton === 2"
+              @click="handleClick(2)"
+              color="error"
+              class="ma-4"
+              elevation="10"
+              rounded
+              size="x-large"
+              :disabled="buttonStatus.morningExit"
+            >
+              Fin Journée
+            </v-btn>
+          </div>
+        </div>
       </v-card-text>
     </v-card>
 
@@ -115,7 +159,7 @@
 
 <script>
 import moment from "moment";
-import { mapActions,mapGetters} from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import axios from "axios";
 
 export default {
@@ -132,11 +176,12 @@ export default {
       environmentSelected: false,
       presenceId: null,
       buttonStatus: {
-        morningExit: true,
-        afternoonEntry: true,
-        afternoonExit: true,
-      },
-      bool:null
+      morningExit: false,
+      afternoonEntry: false,
+      afternoonExit: false,
+    },
+      bool: null,
+      formattedTime: ''
     };
   },
   computed: {
@@ -147,41 +192,118 @@ export default {
         day: "numeric",
       }).format(new Date());
     },
-    formattedTime() {
-      return moment().format("HH:mm:ss");
-    },
+    buttonDisabled() {
+    return {
+      morningExit: this.buttonStatus.morningExit,
+      afternoonEntry: this.buttonStatus.afternoonEntry,
+      afternoonExit: this.buttonStatus.afternoonExit,
+    };
+  },
+   
     currentUserId() {
       return this.$store.state.auth.user.id;
     },
-    ...mapGetters('schedule',["isRecurring"]),
+    ...mapGetters("schedule", ["isRecurring"]),
   },
   methods: {
     ...mapActions(["addPointage", "updatePresence"]),
+    async fetchButtonStatus() {
+  if (this.presenceId && this.currentButton) {
+    const response = await axios.get(
+      "http://localhost:3000/api/presence/checkButtonStatus",
+      {
+        params: { presenceId: this.presenceId, buttonNumber: this.currentButton },
+        headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      }
+    );
+    console.log('API Response:', response.data);
 
+    if (this.bool) {
+      // Non-recurring schedule
+      if (this.currentButton === 2) {
+        this.buttonStatus.morningExit =response.data.disabled;
+      }
+    } else {
+      // Recurring schedule
+      switch (this.currentButton) {
+        case 2:
+          this.buttonStatus.morningExit = response.data.disabled;
+          break;
+        case 3:
+          this.buttonStatus.afternoonEntry = response.data.disabled;
+          break;
+        case 4:
+          this.buttonStatus.afternoonExit = response.data.disabled;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+},
     async fetchCongeToday() {
       try {
-        const response = await axios.get("/api/presence/conge/today");
+        const response = await axios.get(
+          "http://localhost:3000/api/presence/conge/today",
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+          }
+        );
         this.hasConge = response.data.hasConge || false;
       } catch (error) {
         console.error("Error fetching conge status:", error);
+        this.error = "Failed to fetch conge status.";
       }
     },
-async handleRefreshClick(){
-  const response = await axios.get('http://localhost:3000/api/presence/checkButtonStatus', {
-          params: { presenceId: this.presenceId, buttonNumber: this.currentButton },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+
+    async fetchPenaliteToday() {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/presenece/penalite/today",
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
           }
-        });
-        if (this.currentButton == 2) {
+        );
+        this.hasPenalite = response.data.hasPenalite || false;
+      } catch (error) {
+        console.error("Error fetching penalite status:", error);
+        if (!this.error) {
+          this.error = "Failed to fetch penalite status.";
+        }
+      }
+    },
+
+    async handleRefreshClick() {
+  if (this.presenceId && this.currentButton) {
+    const response = await axios.get(
+      "http://localhost:3000/api/presence/checkButtonStatus",
+      {
+        params: { presenceId: this.presenceId, buttonNumber: this.currentButton },
+        headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      }
+    );
+    console.log('API Response:', response.data);
+
+    if (this.bool) {
+      if (this.currentButton === 2) {
+        this.buttonStatus.morningExit = response.data.disabled;
+      }
+    } else {
+      switch (this.currentButton) {
+        case 2:
           this.buttonStatus.morningExit = response.data.disabled;
-        }
-        if (this.currentButton == 3) {
+          break;
+        case 3:
           this.buttonStatus.afternoonEntry = response.data.disabled;
-        }
-        if (this.currentButton == 4) {
+          break;
+        case 4:
           this.buttonStatus.afternoonExit = response.data.disabled;
-        }
+          break;
+        default:
+          break;
+      }
+    }
+  }
 },
     async handleEnvironmentSelection() {
       this.environmentSelected = true;
@@ -196,29 +318,46 @@ async handleRefreshClick(){
     },
 
     async handleClick(buttonNumber) {
-      const time = moment().format("HH:mm:ss");
-      const fieldMap = { 1: "entree", 2: "sortie", 3: "entree1", 4: "sortie1" };
-      await this.updatePresence({
-        id: this.presenceId,
-        [fieldMap[buttonNumber]]: time,
-      });
-      if (buttonNumber < 4) {
-        this.currentButton++;
-      } else {
-        this.isCompleted = true;
-        localStorage.setItem("pointageCompleted", "true");
-      }
-      this.saveState();
-    },
-async loadbool(){
-  const response = await axios.get(`http://localhost:3000/api/schedules/getisramadan`, {
-        params: { date:new Date() },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-      this.bool=response.data.isRamadan
+  const time = moment().format("HH:mm:ss");
+  const fieldMap = { 1: "entree", 2: "sortie", 3: "entree1", 4: "sortie1" };
+
+  await this.updatePresence({
+    id: this.presenceId,
+    [fieldMap[buttonNumber]]: time,
+  });
+
+  // Fetch latest button status after updating presence
+  await this.fetchButtonStatus();
+
+  if (!this.bool) {
+    // Recurring schedule
+    if (buttonNumber < 4) {
+      this.currentButton++;
+    } else {
+      this.isCompleted = true;
+    }
+  } else {
+    // Non-recurring schedule
+    if (buttonNumber === 1) {
+      this.currentButton = 2;
+    } else if (buttonNumber === 2) {
+      this.isCompleted = true;
+    }
+  }
+  this.saveState();
 },
+
+    async loadbool() {
+      const response = await axios.get(
+        "http://localhost:3000/api/schedules/getisramadan",
+        {
+          params: { date: new Date() },
+          headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+        }
+      );
+      this.bool = response.data.isRamadan;
+    },
+
     saveState() {
       localStorage.setItem(
         "pointageData",
@@ -228,27 +367,31 @@ async loadbool(){
           environmentSelected: this.environmentSelected,
           currentButton: this.currentButton,
           isCompleted: this.isCompleted,
-          lastPointageDate: moment().format("YYYY-MM-DD"), // Save current date
+          buttonStatus: this.buttonStatus,
+          lastPointageDate: moment().format("YYYY-MM-DD"),
         })
       );
     },
 
     restoreState() {
-      const savedState = JSON.parse(localStorage.getItem("pointageData"));
-      const today = moment().format("YYYY-MM-DD");
+  const savedState = JSON.parse(localStorage.getItem("pointageData"));
+  const today = moment().format("YYYY-MM-DD");
 
-      if (savedState && savedState.lastPointageDate === today) {
-        // Restore state if the last saved date matches today's date
-        this.presenceId = savedState.presenceId;
-        this.selectedEnvironment = savedState.selectedEnvironment;
-        this.environmentSelected = savedState.environmentSelected;
-        this.currentButton = savedState.currentButton;
-        this.isCompleted = savedState.isCompleted;
-      } else {
-        // Reset state for a new day
-        this.resetPointageState();
-      }
-    },
+  if (savedState && savedState.lastPointageDate === today) {
+    this.presenceId = savedState.presenceId;
+    this.selectedEnvironment = savedState.selectedEnvironment;
+    this.environmentSelected = savedState.environmentSelected;
+    this.currentButton = savedState.currentButton;
+    this.isCompleted = savedState.isCompleted;
+    Object.assign(this.buttonStatus, savedState.buttonStatus || {
+      morningExit: false,
+      afternoonEntry: false,
+      afternoonExit: false,
+    });
+  } else {
+    this.resetPointageState();
+  }
+},
 
     resetPointageState() {
       this.presenceId = null;
@@ -256,41 +399,42 @@ async loadbool(){
       this.environmentSelected = false;
       this.currentButton = 1;
       this.isCompleted = false;
-
+      this.buttonStatus = {
+        morningExit: false,
+        afternoonEntry: false,
+        afternoonExit: false,
+      };
       localStorage.removeItem("pointageData");
     },
-    async fetchCongeToday() {
-      try {
-        const response = await axios.get('http://localhost:3000/api/presence/conge/today', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-        });
-        this.hasConge = response.data.hasConge || false;
-      } catch (error) {
-        console.error('Error fetching conge status:', error);
-        this.error = 'Failed to fetch conge status.';
-      }
-    },
-    async fetchPenaliteToday() {
-      try {
-        const response = await axios.get('http://localhost:3000/api/presenece/penalite/today', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-        });
-        this.hasPenalite = response.data.hasPenalite || false;
-      } catch (error) {
-        console.error('Error fetching penalite status:', error);
-        if (!this.error) {
-          this.error = 'Failed to fetch penalite status.';
-        }
+  },
+watch: {
+  presenceId: {
+    immediate: true,
+    handler(newValue) {
+      if (newValue) {
+        this.fetchButtonStatus();
       }
     },
   },
+  currentButton: {
+    handler(newValue) {
+      if (this.presenceId && newValue) {
+        this.fetchButtonStatus();
+      }
+    },
+  },
+},
   async created() {
+    setInterval(() => this.formattedTime = moment().format("HH:mm:ss"), 1000);
+    this.formattedTime = moment().format("HH:mm:ss");
     await this.fetchCongeToday();
-    await this.fetchPenaliteToday()
-    await this.loadbool()
+    await this.fetchPenaliteToday();
+    await this.loadbool();
     this.loading = false;
   },
   mounted() {
+    setInterval(() => this.formattedTime = moment().format("HH:mm:ss"), 1000);
+  this.formattedTime = moment().format("HH:mm:ss");
     this.restoreState();
   },
 };

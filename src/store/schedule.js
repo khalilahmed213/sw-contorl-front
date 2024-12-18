@@ -130,8 +130,8 @@ const actions = {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
-      commit('SET_IS_RECURRING', response.data.isRamadan);
-    } catch (error) {
+      commit('SET_IS_RECURRING', reponse.data.isRamadan);
+    } catch (error) {s
       console.log(error)
     }
   },
