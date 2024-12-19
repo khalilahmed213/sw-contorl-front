@@ -1,8 +1,10 @@
 <template>
   <v-container>
     <v-card>
+
       <v-card-title>
         <div class="d-flex justify-space-between align-center w-100">
+          
           <v-select
             v-model="selectedAgent"
             :items="allAgents"
@@ -19,7 +21,7 @@
         </div>
       </v-card-title>
       <v-data-table-server
-        :headers="headers"
+        :headers="!bool ? headers : headersnonrecuring"
         :items="presencesforacceptance"
         :options.sync="options"
         :items-length="totalItems"
@@ -104,6 +106,7 @@ import { mapActions, mapGetters } from 'vuex';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import axios from 'axios';
 
 export default {
   data() {
@@ -114,15 +117,26 @@ export default {
         { title: "Environnement", key: "environnement", sortable: false },
         { title: "Début Matin", key: "entree", sortable: false },
         { title: "Fin Matin", key: "sortie", sortable: false },
-        { title: "Début après Midi", key: "entree1", sortable: false },
-        { title: "Fin Après Midi", key: "sortie1", sortable: false },
+        { title: "Début Après-Midi", key: "entree1", sortable: false },
+        { title: "Fin Après-Midi", key: "sortie1", sortable: false },
         { title: "Prod", key: "prod", sortable: false },
         { title: "Prod Matin", key: "prodm", sortable: false },
         { title: "Prod Après-Midi", key: "prodam", sortable: false },
         { title: "Retard Total", key: "retardtotal", sortable: false },
         { title: "Retard Matin", key: "retardm", sortable: false },
         { title: "Retard Après-Midi", key: "retardam", sortable: false },
-        { title: "staut global", key: "overallStatus", sortable: false },
+        { title: "Statut Global", key: "overallStatus", sortable: false },
+        { title: "Actions", key: "actions", sortable: false },
+      ],
+      headersnonrecuring: [
+        { title: "Agent", key: "User", sortable: false },
+        { title: "Date", key: "date", sortable: false },
+        { title: "Environnement", key: "environnement", sortable: false },
+        { title: "Début Matin", key: "entree", sortable: false },
+        { title: "Fin Journée", key: "sortie", sortable: false },
+        { title: "Prod", key: "prod", sortable: false },
+        { title: "Retard Total", key: "retardtotal", sortable: false },
+        { title: "Statut Global", key: "overallStatus", sortable: false },
         { title: "Actions", key: "actions", sortable: false },
       ],
       options: {
@@ -131,13 +145,11 @@ export default {
         sortBy: ['date'],
         sortDesc: [true],
       },
+      bool: null,
       selectedAgent: null,
       snackbar: false,
       snackbarMessage: '',
       snackbarColor: 'success',
-      dafield: null,
-      absenceModal: false,
-    absenceReason: '',
     };
   },
   computed: {
@@ -151,66 +163,68 @@ export default {
       };
     },
     totalItems() {
-      // Implement logic to get total items from store or API
       return this.presencesforacceptance.length;
     },
   },
   methods: {
-    ...mapActions(['getPresences', 'togglePresenceStatus', 'updatePresenceField','updateAllStatuses']),
+    ...mapActions(['getPresences', 'updatePresenceField']),
     ...mapActions({ fetchAllAgents: "agent/fetchAllAgents" }),
-    openAbsenceReasonModal(item) {
-    this.currentItem = item;
-    this.absenceModal = true;
-  },
-  async confirmStatus(item, action) {
-  try {
-    const status = action === 'accept' ? 'true' : 'false';
-    let currentStep = this.determineCurrentStep(item);
+    async confirmStatus(item, action) {
+      try {
+        const status = action === 'accept' ? 'true' : 'false';
+        let currentStep = this.determineCurrentStep(item);
 
-    if (!currentStep) {
-      this.showSnackbar('No step to confirm.', 'warning');
-      return;
-    }
+        if (!currentStep) {
+          this.showSnackbar('Aucun étape à confirmer.', 'warning');
+          return;
+        }
 
-    // Check if the current step is 'overallStatus' and the action is 'reject'
-    if (currentStep === 'overallStatus' && action === 'reject') {
-      // Redirect to the absence page
-      this.$router.push({ name: 'Absence' });
-      return;
-    }
+        if (currentStep === 'overallStatus' && action === 'reject' && !this.bool) {
+          this.$router.push({ name: 'Absence' });
+          return;
+        }
 
-    // Update the presence field
-    await this.updatePresenceField({
-      id: item.id,
-      field: currentStep,
-      status: status,
-    });
+        await this.updatePresenceField({
+          id: item.id,
+          field: currentStep,
+          status: status,
+        });
 
-    // Save progress
-    this.saveProgress(item.id, currentStep, status);
-
-    // Show a success snackbar
-    this.showSnackbar(`Step ${currentStep} marked as ${status} successfully`, 'success');
-  } catch (error) {
-    // Show an error snackbar
-    this.showSnackbar(`Error marking step as ${error}`, 'error');
-  }
-},
+        this.saveProgress(item.id, currentStep, status);
+        this.showSnackbar(`Étape ${currentStep} marquée comme ${status} avec succès`, 'success');
+        await this.fetch(this.options);
+      } catch (error) {
+        this.showSnackbar(`Erreur lors de la marquage de l'étape : ${error}`, 'error');
+      }
+    },
     determineCurrentStep(item) {
-  if (item.morningEntryStatus === null) return 'morningEntryStatus';
-  if (item.morningExitStatus === null) return 'morningExitStatus';
-  if (item.afternoonEntryStatus === null) return 'afternoonEntryStatus';
-  if (item.afternoonExitStatus === null) return 'afternoonExitStatus';
-  if (item.overallStatus === null) return 'overallStatus';
-  return null;
-},
+      if (!this.bool) {
+        if (item.morningEntryStatus === null) return 'morningEntryStatus';
+        if (item.morningExitStatus === null) return 'morningExitStatus';
+        if (item.afternoonEntryStatus === null) return 'afternoonEntryStatus';
+        if (item.afternoonExitStatus === null) return 'afternoonExitStatus';
+        if (item.overallStatus === null) return 'overallStatus';
+      } else {
+        if (item.morningEntryStatus === null) return 'morningEntryStatus';
+        if (item.morningExitStatus === null) return 'morningExitStatus';
+        if (item.overallStatus === null) return 'overallStatus';
+      }
+      return null;
+    },
     isAllStepsConfirmed(item) {
-      return (
-        item.mrniongEntryStatus !== null &&
-        item.morningExitStatus !== null &&
-        item.afternoonEntryStatus !== null &&
-        item.afternoonExitStatus !== null
-      );
+      if (!this.bool) {
+        return (
+          item.morningEntryStatus !== null &&
+          item.morningExitStatus !== null &&
+          item.afternoonEntryStatus !== null &&
+          item.afternoonExitStatus !== null
+        );
+      } else {
+        return (
+          item.morningEntryStatus !== null &&
+          item.morningExitStatus !== null
+        );
+      }
     },
     saveProgress(presenceId, step, status) {
       const progress = JSON.parse(localStorage.getItem('progress')) || {};
@@ -219,12 +233,6 @@ export default {
       }
       progress[presenceId][step] = status;
       localStorage.setItem('progress', JSON.stringify(progress));
-    },
-    formatMinutesToHoursAndMinutes(minutes) {
-      if (!minutes) return '0h 0m';
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `${hours}h ${remainingMinutes}m`;
     },
     showSnackbar(message, color = 'success') {
       this.snackbarMessage = message;
@@ -264,6 +272,7 @@ export default {
         "retard total": item.retardtotal,
         "retard matin": item.retardm,
         "retard après-midi": item.retardam,
+        "statut global": item.overallStatus,
       }));
       const worksheet = XLSX.utils.json_to_sheet(modifiedData);
       const columnWidths = [
@@ -280,11 +289,27 @@ export default {
         { wch: 12 },
         { wch: 12 },
         { wch: 15 },
+        { wch: 12 },
       ];
       worksheet['!cols'] = columnWidths;
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Presences');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Présences');
       XLSX.writeFile(workbook, 'presences.xlsx');
+    },
+    async loadbool() {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/schedules/getisramadan",
+          {
+            params: { date: new Date() },
+            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+          }
+        );
+        this.bool = response.data.isRamadan;
+        console.log('isRamadan:', !this.bool); // Debugging line
+      } catch (error) {
+        console.error('Error fetching isRamadan:', error);
+      }
     },
     applySavedProgress() {
       const progress = JSON.parse(localStorage.getItem('progress')) || {};
@@ -299,6 +324,7 @@ export default {
   },
   async created() {
     await this.fetchAllAgents();
+    await this.loadbool();
     await this.fetch(this.options);
     this.applySavedProgress();
   },
