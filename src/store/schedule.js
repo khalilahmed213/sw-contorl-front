@@ -131,7 +131,7 @@ const actions = {
         }
       });
       commit('SET_IS_RECURRING', reponse.data.isRamadan);
-    } catch (error) {s
+    } catch (error) {
       console.log(error)
     }
   },

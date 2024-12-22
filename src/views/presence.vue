@@ -71,31 +71,32 @@ export default {
   data() {
     return {
       headersRecurring: [
-        { title: "Agent", key: "Agent",sortable:false },
-        { title: "Environnement", key: "environnement" ,sortable:false},
-        { title: "présence", key: "absence",sortable:false},
-        {
-          title: "Shift Matin",
-          align: "center",
-          children: [
-            { title: "Entrée Matin", key: "entree",sortable:false },
-            { title: "Sortie Matin", key: "sortie" ,sortable:false},
-            { title: "Prod Matin", key: "prodMatin" ,sortable:false},
-          ],
-        },
-        {
-          title: "Shift Après Midi",
-          align: "center",
-          children: [
-            { title: "Entrée Après-Midi", key: "entree1" ,sortable:false},
-            { title: "Sortie Après-Midi", key: "sortie1",sortable:false },
-            { title: "Prod Après-Midi", key: "prodApresMidi" ,sortable:false},
-          ],
-        },
-        { title: "Prod", key: "prod" ,sortable:false},
-        { title: "Commentaires", key: "commentaires",sortable:false },
-      ],
-      headersRamadan: [
+  { title: "Agent", key: "Agent", sortable: false, class: 'parent-header agent-header' },
+  { title: "Environnement", key: "environnement", sortable: false, class: 'parent-header env-header' },
+  { title: "présence", key: "absence", sortable: false, class: 'parent-header presence-header' },
+  {
+    title: "Shift Matin",
+    align: "center",
+    class: 'shift-matin-header',
+    children: [
+      { title: "Entrée Matin", key: "entree", sortable: false },
+      { title: "Sortie Matin", key: "sortie", sortable: false },
+      { title: "Prod Matin", key: "prodMatin", sortable: false },
+    ],
+  },
+  {
+    title: "Shift Après Midi",
+    align: "center",
+    class: 'shift-apres-midi-header',
+    children: [
+      { title: "Entrée Après-Midi", key: "entree1", sortable: false },
+      { title: "Sortie Après-Midi", key: "sortie1", sortable: false },
+      { title: "Prod Après-Midi", key: "prodApresMidi", sortable: false },
+    ],
+  },
+  { title: "Prod", key: "prod", sortable: false, class: 'parent-header prod-header' },
+  { title: "Commentaires", key: "commentaires", sortable: false, class: 'parent-header commentaires-header' },
+],    headersRamadan: [
         { title: "Agent", key: "Agent",sortable:false },
         { title: "Environnement", key: "environnement",sortable:false },
         { title: "Présence", key: "absence" ,sortable:false},
@@ -194,4 +195,30 @@ export default {
   },
 };
 </script>
-<style scoped></style>
+<style>
+.v-data-table .v-table__wrapper > table > thead > tr > td,
+    .v-data-table .v-table__wrapper > table > thead > tr th,
+    .v-data-table .v-table__wrapper > table tbody > tr > td,
+    .v-data-table .v-table__wrapper > table tbody > tr th {
+      background-color: #f9f5e3 !important;
+    }
+    
+    
+    .v-data-table .v-table__wrapper > table > thead > tr > th,
+    .v-data-table .v-table__wrapper > table tbody > tr > th {
+      background-color: #408bd1 !important;
+    }
+    
+    
+    .v-data-table-header__content {
+      background-color: #408bd1 !important;
+      color: #CCF5AC;
+      font-weight: bold;
+    }
+
+
+    .v-data-table .v-table__wrapper > table tbody > tr:nth-of-type(even) > td,
+    .v-data-table .v-table__wrapper > table tbody > tr:nth-of-type(even) th {
+      background-color: #e4e0d0 !important;
+    }
+</style>

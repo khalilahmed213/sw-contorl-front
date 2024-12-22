@@ -101,7 +101,7 @@ export default {
           { title: 'Demandes Autorisation', icon: 'mdi-clipboard-check', to: '/app/demandeautorisation' },
           { title: 'Presence', icon: 'mdi-account-check', to: '/app/presence' },
           {
-            title: 'Confirmation de Présence',
+            title: 'Pointage Globale',
             icon: 'mdi-check-circle',
             to: '/app/confirmationpresence'
           },

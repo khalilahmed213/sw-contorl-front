@@ -172,6 +172,9 @@ export default {
     isFormValid() {
       return this.valid && this.editedItem.date && this.editedItem.heureDebut && this.editedItem.heureFin;
     },
+       currentUserId() {
+      return this.$store.state.auth.user.id; // Get current user ID
+    },
   },
   methods: {
     ...mapActions('autorisation', ['fetchUserAutorisations', 'createAutorisation', 'updateAutorisation', 'deleteAutorisation']),

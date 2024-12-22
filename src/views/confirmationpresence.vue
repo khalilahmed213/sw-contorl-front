@@ -1,10 +1,8 @@
 <template>
   <v-container>
     <v-card>
-
       <v-card-title>
         <div class="d-flex justify-space-between align-center w-100">
-          
           <v-select
             v-model="selectedAgent"
             :items="allAgents"
@@ -18,6 +16,7 @@
           ></v-select>
           <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
           <v-btn @click="refreshData" class="ml-2" color="primary">Refresh</v-btn>
+          <v-btn @click="acceptAllStatus" class="ml-2" color="success" :disabled="isAcceptAllDisabled" >Accept All</v-btn>
         </div>
       </v-card-title>
       <v-data-table-server
@@ -85,7 +84,7 @@
     class="custom-chip"
     :style="{ backgroundColor: statusColors[item.overallStatus] || statusColors.default }"
   >
-    {{ item.overallStatus == 'true' ? 'accepté' : item.overallStatus }}
+    {{ item.overallStatus == true ? 'accepté' : item.overallStatus }}
   </div>
 </template>
       </v-data-table-server>
@@ -113,38 +112,34 @@ export default {
     return {
       headers: [
         { title: "Agent", key: "User", sortable: false },
-        { title: "Date", key: "date", sortable: false },
         { title: "Environnement", key: "environnement", sortable: false },
         { title: "Début Matin", key: "entree", sortable: false },
         { title: "Fin Matin", key: "sortie", sortable: false },
+        { title: "Prod Matin", key: "prodm", sortable: false },
+        { title: "Retard Matin", key: "retardm", sortable: false },
         { title: "Début Après-Midi", key: "entree1", sortable: false },
         { title: "Fin Après-Midi", key: "sortie1", sortable: false },
-        { title: "Prod", key: "prod", sortable: false },
-        { title: "Prod Matin", key: "prodm", sortable: false },
         { title: "Prod Après-Midi", key: "prodam", sortable: false },
-        { title: "Retard Total", key: "retardtotal", sortable: false },
-        { title: "Retard Matin", key: "retardm", sortable: false },
         { title: "Retard Après-Midi", key: "retardam", sortable: false },
-        { title: "Statut Global", key: "overallStatus", sortable: false },
+        { title: "Prod", key: "prod", sortable: false },
+        { title: "Retard Total", key: "retardtotal", sortable: false },        
         { title: "Actions", key: "actions", sortable: false },
       ],
       headersnonrecuring: [
         { title: "Agent", key: "User", sortable: false },
-        { title: "Date", key: "date", sortable: false },
         { title: "Environnement", key: "environnement", sortable: false },
+        { title: "Statut Global", key: "overallStatus", sortable: false },
         { title: "Début Matin", key: "entree", sortable: false },
         { title: "Fin Journée", key: "sortie", sortable: false },
         { title: "Prod", key: "prod", sortable: false },
         { title: "Retard Total", key: "retardtotal", sortable: false },
-        { title: "Statut Global", key: "overallStatus", sortable: false },
+      
         { title: "Actions", key: "actions", sortable: false },
       ],
       options: {
-        page: 1,
-        itemsPerPage: 10,
-        sortBy: ['date'],
-        sortDesc: [true],
-      },
+      page: 1,
+      itemsPerPage: 10,
+    },
       bool: null,
       selectedAgent: null,
       snackbar: false,
@@ -165,10 +160,58 @@ export default {
     totalItems() {
       return this.presencesforacceptance.length;
     },
+    isAcceptAllDisabled() {
+      if (!this.presencesforacceptance || this.presencesforacceptance.length === 0) {
+        return true;
+      }
+      return this.presencesforacceptance.every(presence => 
+    presence.environnement === "N/A" || 
+    (presence.overallStatus && presence.overallStatus == true)
+);
+    },
   },
   methods: {
-    ...mapActions(['getPresences', 'updatePresenceField']),
+    ...mapActions(['getPresences', 'updatePresenceField','updateOverallStatus']),
     ...mapActions({ fetchAllAgents: "agent/fetchAllAgents" }),
+    async acceptAllStatus() {
+  try {
+    // Determine the fields to update based on bool value
+    const fieldsToUpdate = !this.bool
+      ? ['morningEntryStatus', 'morningExitStatus', 'afternoonEntryStatus', 'afternoonExitStatus', 'overallStatus']
+      : ['morningEntryStatus', 'morningExitStatus', 'overallStatus'];
+
+    // Prepare records to update
+    const recordsToUpdate = this.presencesforacceptance.map(presence => {
+      // Determine the current step for each presence
+      const currentStep = this.determineCurrentStep(presence);
+      let updateData = {};
+
+      if (currentStep) {
+        updateData = {
+          id: presence.id,
+          [currentStep]: true,
+        };
+      } else {
+        // If all steps are confirmed, do not include in update
+        return null;
+      }
+
+      return updateData;
+    }).filter(record => record !== null); // Remove null records
+
+    // Send the update request
+    await axios.post('http://localhost:3000/api/presence/update-all-statuses', recordsToUpdate, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` }
+    });
+
+    this.showSnackbar('All statuses have been accepted.', 'success');
+    await this.fetch(this.options);
+  } catch (error) {
+    this.showSnackbar('Error accepting all statuses: ' + error.message, 'error');
+  } finally {
+    this.loading = false;
+  }
+},
     async confirmStatus(item, action) {
       try {
         const status = action === 'accept' ? 'true' : 'false';

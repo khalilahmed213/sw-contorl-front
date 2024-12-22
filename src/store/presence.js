@@ -30,10 +30,10 @@ const getters = {
 };
 
 const actions = {
-  async fetchPresenceAndAbsence({ commit }, { dateselect, page, itemsPerPage }) {
+  async fetchPresenceAndAbsence({ commit }, { dateselect }) {
     try {
       const response = await axios.get('http://localhost:3000/api/presence/fetch', {
-        params: { dateselect, page, itemsPerPage },
+        params: { dateselect},
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('setTodayPresenceAndAbsence', response.data.data);
@@ -66,10 +66,13 @@ const actions = {
       console.log(error);
     }
   },
-
   async getPresences({ commit }) {
     try {
       const response = await axios.get('http://localhost:3000/api/presence/getPresences', {
+        params: {
+          /* limit,
+          agentId, */
+        },
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('setPresenceForAcceptance', response.data);
@@ -141,7 +144,7 @@ const actions = {
 
   async updateOverallStatus({ commit, dispatch }, { presenceId, status }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/updateOverallStatus', { presenceId, status }, {
+      const response = await axios.post('http://localhost:3000/api/presence/update-all-statuses', { presenceId, status }, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       await dispatch('getPresences');
@@ -188,15 +191,13 @@ const actions = {
   },
   async updateAllStatuses({ commit }, records) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/update-all-statuses', records, {
+      console.log(records)
+      await axios.post('http://localhost:3000/api/presence/update-all-statuses', records, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
-      return response.data;
+      
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'An error occurred while updating all statuses.';
-      commit('SET_ERROR', errorMessage);
-      throw error;
+    console.log(error)
     } finally {
       commit('SET_LOADING_STATUS', false);
     }

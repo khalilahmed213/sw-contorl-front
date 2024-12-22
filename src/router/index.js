@@ -122,7 +122,7 @@ const routes = [
       },
       {
         path: 'confirmationpresence',
-        name: 'confirmation presence',
+        name: 'Pointage Globale',
         component:Confirmationpresence
       }
     ]

@@ -247,6 +247,9 @@ export default {
           "http://localhost:3000/api/presence/conge/today",
           {
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+            params:{
+              UserId:this.currentUserId
+            }
           }
         );
         this.hasConge = response.data.hasConge || false;
@@ -261,6 +264,9 @@ export default {
         const response = await axios.get(
           "http://localhost:3000/api/presenece/penalite/today",
           {
+            params:{
+              UserId:this.currentUserId
+            },
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
           }
         );
