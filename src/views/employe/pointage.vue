@@ -327,14 +327,45 @@ export default {
   const time = moment().format("HH:mm:ss");
   const fieldMap = { 1: "entree", 2: "sortie", 3: "entree1", 4: "sortie1" };
 
+  // Determine which fields to update based on buttonNumber and schedule type
+  let updateFields = {};
+  if (!this.bool) { // Recurring schedule
+    switch (buttonNumber) {
+      case 1:
+        updateFields = { entree: time };
+        break;
+      case 2:
+        updateFields = { sortie: time };
+        break;
+      case 3:
+        updateFields = { entree1: time };
+        break;
+      case 4:
+        updateFields = { sortie1: time };
+        break;
+    }
+  } else { // Non-recurring schedule
+    switch (buttonNumber) {
+      case 1:
+        updateFields = { entree: time };
+        break;
+      case 2:
+        updateFields = { sortie: time };
+        break;
+    }
+  }
+
+  // Update presence with the determined fields
   await this.updatePresence({
     id: this.presenceId,
-    [fieldMap[buttonNumber]]: time,
+    userId:this.currentUserId,
+    ...updateFields,
   });
 
   // Fetch latest button status after updating presence
   await this.fetchButtonStatus();
 
+  // Update currentButton based on schedule type and buttonNumber
   if (!this.bool) {
     // Recurring schedule
     if (buttonNumber < 4) {

@@ -79,6 +79,27 @@
             {{ item.sortie1 }}
           </div>
         </template>
+        <template v-slot:item.prodm="{ item }">
+          <div>{{ formatTime(item.prodm) }}</div>
+        </template>
+
+        <template v-slot:item.retardm="{ item }">
+          <div>{{ formatTime(item.retardm) }}</div>
+        </template>
+
+        <template v-slot:item.prodam="{ item }">
+          <div>{{ formatTime(item.prodam) }}</div>
+        </template>
+
+        <template v-slot:item.retardam="{ item }">
+          <div>{{ formatTime(item.retardam) }}</div>
+        </template>
+
+       
+
+        <template v-slot:item.retardtotal="{ item }">
+          <div>{{ formatTime(item.retardtotal) }}</div>
+        </template>
         <template v-slot:item.overallStatus="{ item }">
   <div
     class="custom-chip"
@@ -290,11 +311,7 @@ export default {
       const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'date';
       const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'desc';
       await this.getPresences({
-        page,
-        limit: itemsPerPage,
-        sortBy: sortKey,
-        sortOrder,
-        agentId: this.selectedAgent,
+        agentId: parseInt(this.selectedAgent) ,
       });
     },
     async refreshData() {
@@ -338,6 +355,14 @@ export default {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Présences');
       XLSX.writeFile(workbook, 'presences.xlsx');
+    },
+    formatTime(minutes) {
+      if (isNaN(minutes)) {
+        return 'en attente';
+      }
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h ${mins}m`;
     },
     async loadbool() {
       try {

@@ -66,17 +66,15 @@ const actions = {
       console.log(error);
     }
   },
-  async getPresences({ commit }) {
+  async getPresences({ commit }, payload) {
     try {
       const response = await axios.get('http://localhost:3000/api/presence/getPresences', {
         params: {
-          /* limit,
-          agentId, */
+          agentId: payload.agentId,
         },
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('setPresenceForAcceptance', response.data);
-      return response.data;
     } catch (error) {
       console.error(error);
       throw error;
