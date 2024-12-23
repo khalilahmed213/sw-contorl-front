@@ -162,7 +162,7 @@ export default {
       itemsPerPage: 10,
     },
       bool: null,
-      selectedAgent: null,
+      selectedAgent:1,
       snackbar: false,
       snackbarMessage: '',
       snackbarColor: 'success',
@@ -213,7 +213,6 @@ export default {
           [currentStep]: true,
         };
       } else {
-        // If all steps are confirmed, do not include in update
         return null;
       }
 
@@ -304,16 +303,20 @@ export default {
       this.snackbar = true;
     },
     async fetch(newOptions) {
-      if (newOptions) {
-        this.options = newOptions;
-      }
-      const { page, itemsPerPage, sortBy } = this.options;
-      const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'date';
-      const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'desc';
-      await this.getPresences({
-        agentId: parseInt(this.selectedAgent) ,
-      });
-    },
+  if (newOptions) {
+    this.options = newOptions;
+  }
+  const { page, itemsPerPage, sortBy } = this.options;
+  const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'date';
+  const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'desc';
+  
+  // Set agentId only if selectedAgent is not null
+  const agentId = this.selectedAgent !== null ? this.selectedAgent : undefined;
+  
+  await this.getPresences({
+    agentId: agentId,
+  });
+},
     async refreshData() {
       await this.fetch(this.options);
     },

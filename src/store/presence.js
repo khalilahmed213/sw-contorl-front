@@ -48,7 +48,6 @@ const actions = {
       await axios.put('http://localhost:3000/api/presence/addtimes', presenceData, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
     } catch (error) {
       console.error('Error updating presence:', error);
       throw error;
@@ -68,10 +67,13 @@ const actions = {
   },
   async getPresences({ commit }, payload) {
     try {
+      const params = {};
+      if (payload.agentId !== undefined) {
+        params.agentId = payload.agentId;
+      }
+      
       const response = await axios.get('http://localhost:3000/api/presence/getPresences', {
-        params: {
-          agentId: payload.agentId,
-        },
+        params: params,
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       commit('setPresenceForAcceptance', response.data);
@@ -86,7 +88,6 @@ const actions = {
       const response = await axios.post('http://localhost:3000/api/presence/toggle-presence', { id, action, UserId, raison }, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while updating presence status';
@@ -129,7 +130,7 @@ const actions = {
       const response = await axios.post('http://localhost:3000/api/presence/confirmTallying', { presenceId, tallyingPoint, status }, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
+      
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while confirming tallying status';
@@ -145,7 +146,6 @@ const actions = {
       const response = await axios.post('http://localhost:3000/api/presence/update-all-statuses', { presenceId, status }, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while updating overall status';
@@ -161,7 +161,6 @@ const actions = {
       const response = await axios.post('http://localhost:3000/api/presence/toggle-presence-status', { id, status, UserId }, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while updating presence status';
@@ -177,7 +176,6 @@ const actions = {
       const response = await axios.post('http://localhost:3000/api/presence/update-presence-field', { id, field, status }, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
-      await dispatch('getPresences');
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while updating presence field';
