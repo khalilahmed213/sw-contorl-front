@@ -14,6 +14,8 @@
         ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green"
           >Export Excel</v-btn>
+          <v-btn @click="refresh" class="ml-6" color="blue"
+          >Actualiser</v-btn>
       </v-card-title>
       <v-card-text>
         <v-data-table-server
@@ -146,7 +148,9 @@ export default {
         month: this.options.selectedMonth,
       });
     },
-
+async refresh(){
+  await this.fetch(this.options)
+}
   },
   mounted(){
    

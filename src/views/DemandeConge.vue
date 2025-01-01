@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        <div class="d-flex justify-space-between align-center w-100">
+        
         <v-select
           v-model="selectedAgent"
           :items="allAgents"
@@ -18,7 +18,9 @@
             <v-icon left>mdi-file-excel</v-icon>
             Exporter Excel
           </v-btn>
-      </div>
+          <v-btn color="blue" @click="refresh">
+            Actualiser
+          </v-btn>
       </v-card-title>
   
       <v-data-table-server
@@ -96,6 +98,9 @@ export default {
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
+    async refresh(){
+await this.fetch(this.options)
+    },
     getStatusColor(status) {
       switch (status) {
         case "accepté": return "green"; // Green for accepted

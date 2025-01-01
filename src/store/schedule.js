@@ -7,7 +7,8 @@ const state = {
   loading: false,
   isselectedschedule:{},
   isRecurring: null,
-  schedule:null
+  schedule:null,
+  aschedule:{}
 }; 
 
 const getters = {
@@ -16,7 +17,7 @@ const getters = {
   isLoading: state => state.loading,
   selectedschedule: state=>state.isselectedschedule,
   isRecurring: state => state.isRecurring,
-  scheduleSelected: state => state.schedule,
+  scheduleSelected: state => state.aschedule,
   
 };
 
@@ -44,6 +45,9 @@ const mutations = {
   },
   SET_SCHEDULE(state,schedule){
     state.schedule=schedule
+  },
+  SET_Usage(state,schedule){
+    state.aschedule=schedule
   },
 };
 
@@ -143,13 +147,14 @@ const actions = {
         }
       });
       console.log(response.data.schedule.id)
-      commit('SET_SCHEDULE', response.data.schedule.id);
+      commit('SET_Usage', response.data.schedule);
     } catch (error) {
       commit('SET_ERROR', error.message);
     } finally {
       commit('SET_LOADING', false);
     }
   },
+
 };
 
 export default {

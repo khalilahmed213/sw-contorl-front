@@ -25,6 +25,9 @@
         ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
         <v-btn @click="showAddAbsenceModal = true" class="ml-2" color="primary">Add Absence</v-btn>
+        <v-btn @click="refresh" color="blue"
+          >Actualiser</v-btn
+        >
       </v-card-title>
       <v-card-text>
         <v-data-table-server
@@ -162,6 +165,9 @@ export default {
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents",
     }),
+    async refresh(){
+await this.fetch(this.options)
+    },
     ...mapActions("absence", ["fetchAbsences", "addAbsence"]),
     exportToExcel() {
       const dataToExport = this.absences.map(absence => ({

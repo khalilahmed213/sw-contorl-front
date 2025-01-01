@@ -21,7 +21,7 @@ const actions = {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/congecalcule', {
-        params: { userId, month, page, limit, sortBy, order },
+        params: { userId, page, limit, sortBy, order },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
         },
@@ -50,6 +50,23 @@ const actions = {
       commit('SET_LEAVE_BALANCES', null);
     } finally {
       commit('SET_LOADING', false);
+    }
+  },
+  async updateSoldeAncienConge({ commit }, payload) {
+    try {
+      const response = await axios.put(
+        'http://localhost:3000/api/update-solde-ancien-conge', 
+        payload, 
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`, 
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Error updating ancien conge:', error);
+      throw error; // Re-throw the error if needed for further handling
     }
   }
 };

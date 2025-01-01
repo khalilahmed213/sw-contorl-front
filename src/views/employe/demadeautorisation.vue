@@ -6,6 +6,11 @@
           <v-icon left>mdi-plus</v-icon>
           Demande d'autorisation
         </v-btn>
+        <br/>
+        <br/>
+        <v-btn color="primary" @click="refresh">
+          Actualiser
+        </v-btn>
       </v-card-title>
 
       <v-card-text>
@@ -25,7 +30,7 @@
             </v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-icon small @click="editItem(item)" class="mr-2">mdi-pencil</v-icon>
+            <v-icon small @click="editItem(item)":disabled="!canDelete(item)"class="mr-2">mdi-pencil</v-icon>
             <v-icon 
               small 
               @click="deleteItem(item)" 
@@ -49,14 +54,15 @@
         <v-card-title>{{ formTitle }}</v-card-title>
         <v-card-text>
           <v-form ref="form" v-model="valid" @submit.prevent="saveItem">
-            <v-text-field
+            <v-date-input
               v-model="editedItem.date"
               label="Date"
-              type="date"
               :rules="[v => !!v || 'La date est requise', validateDate]"
               required
               :min="getCurrentDate()"
-            ></v-text-field>
+              locale="fr"
+              date-format="dd/MM/yyyy"
+            ></v-date-input>
             <v-text-field
               v-model="editedItem.heureDebut"
               label="Heure de Début"
@@ -117,6 +123,9 @@
 
 <script>
 import { mapState, mapActions,mapGetters } from 'vuex';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { VDateInput } from 'vuetify/labs/VDateInput';
 import moment from 'moment';
 export default {
   data() {
@@ -135,14 +144,13 @@ export default {
         { title: 'Actions', key: 'actions', sortable: false },
       ],
       editedItem: {
-        date: '',
+        date: null,
         heureDebut: '',
         heureFin: '',
         UserId: '',
-        ScheduleId:''
       },
       defaultItem: {
-        date: '',
+        date: null,
         heureDebut: '',
         heureFin: '',
         UserId: '',
@@ -167,7 +175,7 @@ export default {
       return this.editedItem.id ? 'Modifier Autorisation' : 'Nouvelle Autorisation';
     },
     currentUserId() {
-      return this.user ? this.user.id : null;
+      return this.$store.state.auth.user.id; // Get current user ID
     },
     isFormValid() {
       return this.valid && this.editedItem.date && this.editedItem.heureDebut && this.editedItem.heureFin;
@@ -178,30 +186,57 @@ export default {
   },
   methods: {
     ...mapActions('autorisation', ['fetchUserAutorisations', 'createAutorisation', 'updateAutorisation', 'deleteAutorisation']),
-    ...mapActions('schedule', ['fetchSelectedSchedule']),
-    
-    async fetchAutorisations(newOptions) {
-      if (newOptions) {
-        this.options = newOptions;
-      }
-      const { page, itemsPerPage, sortBy, sortDesc } = this.options;
+    ...mapActions('schedule', ['fetchSelectedSchedule','fetchSelectedSchedule']),
+    formatDate(date) {
+    return format(new Date(date), 'dd/MM/yyyy', { locale: fr });
+  },
+  async fetchAutorisations(newOptions) {
+  console.log('fetchAutorisations called with newOptions:', newOptions);
+  if (newOptions) {
+    this.options.page = newOptions.page;
+    this.options.itemsPerPage = newOptions.itemsPerPage;
+    this.options.sortBy = newOptions.sortBy;
+    this.options.sortDesc = newOptions.sortDesc;
+  }
+  const { page, itemsPerPage, sortBy, sortDesc } = this.options;
 
-      const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'date';
-      const sortOrder = sortBy && sortBy.length > 0  ? sortBy[0].order : 'asc';
+  let sortKey = '';
+  let sortOrder = '';
+  if (sortBy && sortBy.length > 0) {
+    sortKey = sortBy[0];
+    sortOrder = sortDesc[0] ? 'desc' : 'asc';
+  } else {
+    sortKey = 'date';
+    sortOrder = 'asc';
+  }
 
-      await this.fetchUserAutorisations({
-        UserId: this.currentUserId,
-        page,
-        limit: itemsPerPage,
-        sortBy: sortKey,
-        sortOrder,
-      });
-    },
+  console.log('Fetching autorisations with:', {
+    UserId: this.currentUserId,
+    page,
+    limit: itemsPerPage,
+    sortBy: sortKey,
+    sortOrder,
+  });
 
-    openAddDialog() {
-      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId ,ScheduleId:this.scheduleSelected};
-      this.dialog = true;
-    },
+  await this.fetchUserAutorisations({
+    UserId: this.currentUserId,
+    page,
+    limit: itemsPerPage,
+    sortBy: sortKey,
+    sortOrder,
+  });
+},
+async refresh(){
+await this.fetchAutorisations(this.options)
+},
+openAddDialog() {
+    this.editedItem = {
+      ...this.defaultItem,
+      date: this.editedItem.date ? new Date(this.editedItem.date) : null, // Convert to Date object
+      UserId: this.currentUserId,
+    };
+    this.dialog = true;
+  },
 
     editItem(item) {
       this.editedItem = { ...item };
@@ -230,47 +265,63 @@ export default {
     },
 
     validateDate(value) {
-      const selectedDate = new Date(value);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return selectedDate >= today || 'La date doit être aujourd\'hui ou dans le futur';
-    },
+    if (!value) return 'La date est requise';
+    const selectedDate = new Date(value);
+    if (isNaN(selectedDate.getTime())) return 'Date invalide';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selectedDate >= today || 'La date doit être aujourd\'hui ou dans le futur';
+  },
 
     validateStartTime(value) {
-      const startTime = this.parseTime(value);
-      const minTime = this.parseTime('08:00');
-      const maxTime = this.parseTime('18:00');
-      
-      if (startTime < minTime || startTime > maxTime) {
-        return 'L\'heure de début doit être entre 08:00 et 18:00';
+      let minTime, maxTime;
+      if (this.scheduleSelected.isRecurring) {
+        minTime = this.parseTime('09:00');
+        maxTime = this.parseTime('18:00');
+      } else {
+        minTime = this.parseTime(this.scheduleSelected.morningStart);
+        maxTime = this.parseTime(this.scheduleSelected.morningEnd);
       }
-      
+      const startTime = this.parseTime(value);
+      if (startTime < minTime || startTime > maxTime) {
+        return `L'heure de début doit être entre ${this.formatTime(minTime)} et ${this.formatTime(maxTime)}`;
+      }
       return true;
     },
+    parseTime(timeString) {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    },
 
+    formatTime(date) {
+      return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    },
     validateEndTime(value) {
       if (!this.editedItem.heureDebut) return true;
-      
       const startTime = this.parseTime(this.editedItem.heureDebut);
+      let minTime, maxTime;
+      if (this.scheduleSelected.isRecurring) {
+        minTime = this.parseTime('09:00');
+        maxTime = this.parseTime('18:00');
+      } else {
+        minTime = this.parseTime(this.scheduleSelected.morningStart);
+        maxTime = this.parseTime(this.scheduleSelected.morningEnd);
+      }
       const endTime = this.parseTime(value);
-      const maxTime = this.parseTime('18:00');
-      
       if (endTime <= startTime) {
         return 'L\'heure de fin doit être après l\'heure de début';
       }
-      
       if (endTime > maxTime) {
-        return 'L\'heure de fin ne doit pas dépasser 18:00';
+        return `L'heure de fin ne doit pas dépasser ${this.formatTime(maxTime)}`;
       }
-      
-      const durationInHours = (endTime - startTime) / (1000 * 60 * 60);
-      if (durationInHours > 4) {
+      const durationInMinutes = (endTime - startTime) / (1000 * 60);
+      if (durationInMinutes > 240) { // 4 hours in minutes
         return 'La durée ne doit pas dépasser 4 heures';
       }
-      
       return true;
     },
-
     parseTime(timeString) {
       const [hours, minutes] = timeString.split(':').map(Number);
       const date = new Date();
@@ -310,7 +361,6 @@ export default {
               heureDebut: this.editedItem.heureDebut,
               heureFin: this.editedItem.heureFin,
               UserId: this.currentUserId,
-              ScheduleId:1
             });
             this.showSnackbar('Autorisation ajoutée avec succès', 'success');
             console.log(this.editedItem)
@@ -349,12 +399,12 @@ export default {
     },
 
     getCurrentDate() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    },
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+},
 
     formatMinutesToHoursAndMinutes(minutes) {
       if (!minutes) return '0h 0m';
@@ -374,7 +424,7 @@ export default {
     },
   },
   async mounted() {
-    
+    this.fetchSelectedSchedule()
   },
 };
 </script>

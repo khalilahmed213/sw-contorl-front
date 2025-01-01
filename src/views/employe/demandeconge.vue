@@ -1,16 +1,20 @@
 <template>
   <v-container>
     <v-card>
-        <v-card class="pa-4 text-center">
-          <div class="caption grey--text">Congé restant</div>
-          <div class="display-1 font-weight-bold">21 jours</div>
-        </v-card>
-   
       <v-card-title>
         <v-btn color="primary" @click="openAddDialog">
           <v-icon left>mdi-plus</v-icon>
-          Demande de Congé
+          <div>Demandes Conges</div>
+
         </v-btn>
+        <br/>
+        <br/>
+        <v-btn color="primary" @click="refresh">
+          
+          <div>Actualiser</div>
+
+        </v-btn>
+        
       </v-card-title>
 
       <v-card-text>
@@ -36,12 +40,8 @@
             </v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-icon small @click="editItem(item)" class="mr-2">mdi-pencil</v-icon>
+            <v-icon small @click="editItem(item)" class="mr-2" :disabled="!canDelete(item)">mdi-pencil</v-icon>
             <v-icon small @click="deleteItem(item)" color="black" :disabled="!canDelete(item)">mdi-delete</v-icon>
-          </template>
-          <template v-slot:item.remainingLeave="{ item }">
-            <div class="caption grey--text">Congé restant</div>
-            <div class="display-1 font-weight-bold">{{ item.remainingLeave }} jours</div>
           </template>
         </v-data-table-server>
       </v-card-text>
@@ -90,8 +90,8 @@
 </template>
 
 <script>
+import moment from 'moment';
 import { mapState, mapActions,mapGetters } from 'vuex';
-
 export default {
   data() {
     return {
@@ -132,8 +132,8 @@ export default {
     };
   },
   computed: {
-    ...mapState('conge', ['conges', 'totalItems', 'loading']),
-    ...mapGetters('calcule',[' Data']),
+    ...mapState('conge', ['conges', 'totalItems', 'loading','penalites']),
+    ...mapGetters('calcule',['Data']),
     ...mapGetters('schedule',['isselectedschedule']),
     formTitle() {
       return this.editedItem.id ? 'Modifier Congé' : 'Nouvelle Demande de Congé';
@@ -143,12 +143,22 @@ export default {
     },
   },
   methods: {
-    ...mapActions('conge', ['fetchConges', 'createConge', 'updateConge', 'deleteConge','fetchUserConges']),
+    ...mapActions('conge', ['fetchConges', 'createConge', 'updateConge', 'deleteConge','fetchUserConges','fetchUserPenalites']),
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
     ...mapActions('schedule',['fetchSelectedSchedule']),
     ...mapActions('calcule',['fetchCongepData']),
+    datesOverlap(congeStartDate, congeEndDate, penaliteStartDate, penaliteEndDate) {
+    // Convert dates to moment objects
+    const cStart = moment(congeStartDate);
+    const cEnd = moment(congeEndDate);
+    const pStart = moment(penaliteStartDate);
+    const pEnd = moment(penaliteEndDate);
+
+    // Check for overlap
+    return !(cEnd < pStart || cStart > pEnd);
+  },
     async fetchConges(newOptions) {
       if (newOptions) {
         this.options = newOptions;
@@ -165,7 +175,9 @@ export default {
       });
       
     },
-
+async refresh(){
+  await this.fetchConges(this.options)
+},
     openAddDialog() {
       this.editedItem = { ...this.defaultItem, UserId: this.currentUserId, ScheduleId:null};
       this.dialog = true;
@@ -195,24 +207,42 @@ export default {
     },
 
     async saveItem() {
-      if (this.$refs.form.validate()) {
-        this.formError = null;
-        try {
-          if (this.editedItem.id) {
-            await this.updateConge({ id: this.editedItem.id, congeData: this.editedItem });
-            this.showSnackbar('Congé mis à jour avec succès', 'success');
-          } else {
-            await this.createConge(this.editedItem);
-            this.showSnackbar('Congé ajouté avec succès', 'success');
-          }
+  if (this.$refs.form.validate()) {
+    this.formError = null;
+
+    // Check for overlaps with penalites
+    const penalites = this.penalites; // Corrected access
+    const congeStartDate = this.editedItem.startDate;
+    const congeEndDate = this.editedItem.endDate;
+
+    if (Array.isArray(penalites)) { // Added type check
+      for (const penalite of penalites) {
+        if (this.datesOverlap(congeStartDate, congeEndDate, penalite.startDate, penalite.endDate)) {
+          this.showSnackbar('Vous ne pouvez pas passer un conge car vous avez déjà une pénalité.', 'error');
           this.closeDialog();
-          await this.fetchConges(this.options);
-        } catch (error) {
-          console.error('Échec de l\'enregistrement du congé:', error);
-          this.showSnackbar('Erreur lors de l\'enregistrement du congé', 'error');
+          return;
         }
       }
-    },
+    } else {
+      console.error('penalites is not an array');
+    }
+
+    try {
+      if (this.editedItem.id) {
+        await this.updateConge({ id: this.editedItem.id, congeData: this.editedItem });
+        this.showSnackbar('Congé mis à jour avec succès', 'success');
+      } else {
+        await this.createConge(this.editedItem);
+        this.showSnackbar('Congé ajouté avec succès', 'success');
+      }
+      this.closeDialog();
+      await this.fetchConges(this.options);
+    } catch (error) {
+      console.error('Échec de l\'enregistrement du congé:', error);
+      this.showSnackbar('Erreur lors de l\'enregistrement du congé', 'error');
+    }
+  }
+},
 
     async deleteItemConfirm() {
       try {
@@ -249,10 +279,13 @@ export default {
       const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
       return new Date(date).toLocaleDateString('fr-FR', options);
     },
-    async created(){
+
+  },
+  async created(){
+
 await this.fetchCongepData(this.currentUserId)
 await this.fetchSelectedSchedule()
-    }
+await this.fetchUserPenalites(this.currentUserId);
   },
 };
 </script>

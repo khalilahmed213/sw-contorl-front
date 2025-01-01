@@ -88,6 +88,7 @@ const actions = {
           Authorization: `Bearer ${getAccessToken()}`
         }
       });
+      console.log(UserId)
       commit('SET_AUTORISATIONS', response.data);
     } catch (error) {
       commit('SET_ERROR', error.message);

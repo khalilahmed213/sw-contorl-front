@@ -3,16 +3,6 @@
 <v-card>
       <v-card-title class="d-flex justify-start align-center">
         <v-select
-          v-model="options.selectedMonth"
-          :items="months"
-          @update:modelValue="fetch"
-          label="filtrer par mois"
-          clearable
-          class="mx-4"
-          item-value="value"
-          style="max-width: 200px"
-        ></v-select>
-        <v-select
           v-model="options.selectedAgent"
           :items="allAgents"
           item-title="name"
@@ -42,6 +32,23 @@
         {{ item.name }}
       </router-link>
     </template>
+    <template #item.RESTANCIENCONGE="{ item }">
+  <div
+    v-if="editedItem !== item"
+    @click="editItem(item)"
+  >
+    {{ item.RESTANCIENCONGE }}
+  </div>
+  <div v-else>
+    <input
+      type="number"
+      v-model="item.RESTANCIENCONGE"
+      @blur="saveEdit(item)"
+      @keyup.enter="saveEdit(item)"
+      @keyup.esc="cancelEdit(item)"
+    />
+  </div>
+</template>
         </v-data-table-server>
 
     <v-table>
@@ -64,6 +71,7 @@
 <script>
 import { mapActions, mapGetters,mapState } from "vuex";
 import * as XLSX from 'xlsx';
+import axios from "axios";
 export default {
   data() {
     return {
@@ -77,28 +85,15 @@ export default {
         { title: 'RESTE CONGE', key: 'RESTCONGE' },
         { title: 'Rest ancien congé', key: 'RESTANCIENCONGE' }
       ],
-      months: [
-        { title: "Janvier", value: 1 },
-        { title: "Février", value: 2 },
-        { title: "Mars", value: 3 },
-        { title: "Avril", value: 4 },
-        { title: "Mai", value: 5 },
-        { title: "Juin", value: 6 },
-        { title: "Juillet", value: 7 },
-        { title: "Août", value: 8 },
-        { title: "Septembre", value: 9 },
-        { title: "Octobre", value: 10 },
-        { title: "Novembre", value: 11 },
-        { title: "Décembre", value: 12 },
-      ],
       options: {
         page: 1,
         itemsPerPage: 10,
         sortBy: ["date"],
         sortDesc: [true],
         selectedAgent: "",
-        selectedMonth: "",
+        
       },
+      editedItem: null,
     };
   },
   computed: {
@@ -110,7 +105,39 @@ export default {
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents",
     }),
-    ...mapActions("CalculeConge",["fetchCongeData"]),
+    ...mapActions("CalculeConge",["fetchCongeData","updateSoldeAncienConge"]),
+    editItem(item) {
+    this.editedItem = item;
+  },
+  cancelEdit(item) {
+    // Restore the original value
+    Object.assign(item, this.originalItem);
+    this.editedItem = null;
+  },
+  async saveEdit(item) {
+   try {
+    console.log('da5let')
+    const stuff=item.id;
+    const data = this.CongeData.find(item => item.id=== stuff)
+    const response = await axios.put(
+        'http://localhost:3000/api/update-solde-ancien-conge', 
+        { id: item.id, soldeAncienConge: item.RESTANCIENCONGE+data.sanction}, 
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`, 
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      this.fetch(this.options);
+      this.editedItem = null;
+    } catch (error) {
+      console.error('Error saving edit:', error);
+      // Optionally, revert the changes
+      Object.assign(item, this.originalItem);
+      this.editedItem = null;
+    }
+  },
     async fetch(newOptions) {
       if (newOptions) {
         this.options.page = newOptions.page;
@@ -126,7 +153,6 @@ export default {
         sortBy: sortKey,
         order:sortOrder,
         userId: this.options.selectedAgent,
-        month: this.options.selectedMonth,
       });
     }, 
     exportToExcel() {
@@ -151,13 +177,27 @@ export default {
       // Déclencher le téléchargement
       XLSX.writeFile(wb, fileName);
     },
-  },
-  mounted(){
+  
+},
+   
+    mounted(){
 console.log(this.CongeData)
   },
   async created() {
     await this.fetchAllAgents();
   },
+  watch: {
+  editedItem: {
+    handler(newValue) {
+      if (newValue) {
+        // Store the original value before editing
+        this.originalItem = { ...newValue };
+      }
+    },
+    deep: true,
+  },
+},
+
 };
 </script>
 

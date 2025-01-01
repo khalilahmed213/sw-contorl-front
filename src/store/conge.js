@@ -9,6 +9,7 @@ const state = {
   totalItems: 0,
   loading: false,
   error: null,
+  penalites: [],
 };
 
 const mutations = {
@@ -24,9 +25,26 @@ const mutations = {
   SET_ERROR(state, error) {
     state.error = error;
   },
+  SET_PENALITES(state, penalites) {
+    state.penalites = penalites;
+  }
 };
 
 const actions = {
+  async fetchUserPenalites({ commit,state}, UserId) {
+    try {
+      const response = await axios.get('http://localhost:3000/api//penalitesconge', {
+        params: { UserId },
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`
+        }
+      });
+      commit('SET_PENALITES', response.data);
+      console.log(state.penalites)
+    } catch (error) {
+      commit('SET_ERROR', error.message);
+    }
+  },
   async fetchConges({ commit,state }, { page, limit, sortBy, sortOrder, UserId }) {
     commit('SET_LOADING', true);
     try {

@@ -88,7 +88,6 @@ export default {
     menuItems() {
       return this.userRole == 'admin'
         ? [
-          { title: 'Home', icon: 'mdi-home', to: '/app/home' },
           {
             title: 'Gestion Congé',
             icon: 'mdi-calendar',

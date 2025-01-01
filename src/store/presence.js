@@ -131,7 +131,6 @@ const actions = {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       
-      return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'An error occurred while confirming tallying status';
       commit('SET_ERROR', errorMessage);

@@ -79,6 +79,8 @@ const actions = {
       throw error;
     }
   },
+
+
 };
 
 const mutations = {
@@ -92,6 +94,7 @@ const mutations = {
       state.penalites.splice(index, 1, updatedPenalite);
     }
   },
+ 
  
 };
 

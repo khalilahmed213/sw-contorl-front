@@ -79,6 +79,9 @@
             {{ item.sortie1 }}
           </div>
         </template>
+        <template v-slot:item.prod="{ item }">
+          <div>{{ formatTime(item.prod) }}</div>
+        </template>
         <template v-slot:item.prodm="{ item }">
           <div>{{ formatTime(item.prodm) }}</div>
         </template>
@@ -162,7 +165,7 @@ export default {
       itemsPerPage: 10,
     },
       bool: null,
-      selectedAgent:1,
+      selectedAgent:null,
       snackbar: false,
       snackbarMessage: '',
       snackbarColor: 'success',
@@ -182,14 +185,18 @@ export default {
       return this.presencesforacceptance.length;
     },
     isAcceptAllDisabled() {
-      if (!this.presencesforacceptance || this.presencesforacceptance.length === 0) {
-        return true;
-      }
-      return this.presencesforacceptance.every(presence => 
-    presence.environnement === "N/A" || 
-    (presence.overallStatus && presence.overallStatus == true)
-);
-    },
+  if (!this.presencesforacceptance || this.presencesforacceptance.length === 0) {
+    return true;
+  }
+  const allN_A_or_true = this.presencesforacceptance.every(presence => 
+      presence.environnement === "N/A" || 
+      (presence.overallStatus && presence.overallStatus === true)
+  );
+  const has_coge_penalite_absent = this.presencesforacceptance.some(presence => 
+      ["coge", "penalite", "absent"].includes(presence.environnement)
+  );
+  return allN_A_or_true || has_coge_penalite_absent;
+}
   },
   methods: {
     ...mapActions(['getPresences', 'updatePresenceField','updateOverallStatus']),
@@ -361,7 +368,7 @@ export default {
     },
     formatTime(minutes) {
       if (isNaN(minutes)) {
-        return 'en attente';
+        return  "0h 0m"
       }
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;

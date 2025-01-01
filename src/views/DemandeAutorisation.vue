@@ -2,7 +2,6 @@
   <v-container>
     <v-card>
       <v-card-title>
-        <div class="d-flex justify-space-between align-center w-100">
           <v-select
               v-model="selectedAgent"
               :items="allAgents"
@@ -18,7 +17,9 @@
             <v-btn @click="exportToExcel" class="ml-auto" color="green"
           >Export Excel</v-btn
         >
-        </div>
+        <v-btn @click="refresh" class="ml-auto" color="blue"
+          >Actualiser</v-btn
+        >
       </v-card-title>
       <v-data-table-server
         :headers="headers"
@@ -129,6 +130,9 @@ export default {
         console.error('Failed to update autorisation status:', error);
         this.showSnackbar('Erreur lors de la mise à jour du statut', 'error');
       }
+    },
+    async refresh(){
+await this.fetch(this.options)
     },
     formatMinutesToHoursAndMinutes(minutes) {
       if (!minutes) return '0h 0m';

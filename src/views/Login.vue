@@ -17,7 +17,7 @@
                 outlined
                 @click:append="showPassword = !showPassword"
               ></v-text-field>
-              <v-btn color="primary" type="submit" block :loading="loading">Login</v-btn>
+              <v-btn color="primary" type="submit" block :loading="loading">Se Connecter</v-btn>
             </v-form>
             <v-dialog v-model="dialog" max-width="400px">
               <v-card>
@@ -29,7 +29,6 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <router-link to="/forgot-password">Forgot Password?</router-link>
           </v-card-text>
         </v-card>
       </v-col>
@@ -72,9 +71,9 @@ export default {
         await this.$store.dispatch('auth/login', this.form);
         const userRole = this.$store.getters['auth/userRole'];
         if (userRole === 'admin') {
-          this.$router.push('/app/home'); 
+          this.$router.push('/app/Conge'); 
         } else if (userRole === 'employe') {
-          this.$router.push('/employee/home'); 
+          this.$router.push('/employee/pointage'); 
         }
       } catch (error) {
         console.error('Error:', error);
