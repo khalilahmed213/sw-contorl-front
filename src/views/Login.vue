@@ -13,7 +13,7 @@
                 v-model="form.password"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 :type="showPassword ? 'text' : 'password'"
-                label="Password"
+                label="mot de passe"
                 outlined
                 @click:append="showPassword = !showPassword"
               ></v-text-field>

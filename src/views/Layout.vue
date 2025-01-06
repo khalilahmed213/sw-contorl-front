@@ -57,7 +57,7 @@
         </v-avatar>
       </v-btn>
     </div>
-      <v-btn @click="logout" prepend-icon="mdi-logout" size="large">Logout</v-btn>
+      <v-btn @click="logout" prepend-icon="mdi-logout" size="large">se déconnecter</v-btn>
     </v-app-bar>
 
     <v-main>

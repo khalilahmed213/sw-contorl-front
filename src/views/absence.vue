@@ -24,7 +24,7 @@
           style="max-width: 200px"
         ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
-        <v-btn @click="showAddAbsenceModal = true" class="ml-2" color="primary">Add Absence</v-btn>
+        <v-btn @click="showAddAbsenceModal = true" class="ml-2" color="primary">ajouter Absence</v-btn>
         <v-btn @click="refresh" color="blue"
           >Actualiser</v-btn
         >
@@ -209,18 +209,18 @@ await this.fetch(this.options)
       try {
         const existing = this.absences.find(absence => absence.UserId === this.newAbsence.userId && absence.date === this.newAbsence.date);
         if (existing) {
-          this.showErrorAlert('Absence already exists for this user on this date.');
+          this.showErrorAlert('L\'absence existe déjà pour cet utilisateur à cette date.');
           return;
         }
         await this.addAbsence(this.newAbsence);
-        this.showSuccessAlert('Absence added successfully.');
+        this.showSuccessAlert('Absence ajoutée avec succès.');
         this.showAddAbsenceModal = false;
         this.newAbsence = { userId: null, date: new Date().toISOString().substr(0, 10), raison: null };
         this.fetch(this.options);
       } catch (error) {
         console.error("Error adding absence:", error);
         if (error.response && error.response.data.message) {
-          this.showErrorAlert(error.response.data.message);
+          this.showErrorAlert('Une erreur s\'est produite lors de l\'ajout de l\'absence.');
         }
       }
     },

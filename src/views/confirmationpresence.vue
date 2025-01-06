@@ -15,8 +15,8 @@
             style="max-width: 200px;"
           ></v-select>
           <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
-          <v-btn @click="refreshData" class="ml-2" color="primary">Refresh</v-btn>
-          <v-btn @click="acceptAllStatus" class="ml-2" color="success" :disabled="isAcceptAllDisabled" >Accept All</v-btn>
+          <v-btn @click="refreshData" class="ml-2" color="primary">Actualiser</v-btn>
+          <v-btn @click="acceptAllStatus" class="ml-2" color="success" :disabled="isAcceptAllDisabled" >Accepter tout</v-btn>
         </div>
       </v-card-title>
       <v-data-table-server
@@ -134,6 +134,20 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      snackbarMessages: {
+      allStatusesAccepted: 'Tous les statuts ont été acceptés.',
+      errorAcceptingAllStatuses: 'Erreur lors de l\'acceptation de tous les statuts : ',
+      noStepToConfirm: 'Aucune étape à confirmer.',
+      errorConfirmingStep: 'Erreur lors de la confirmation de l\'étape : ',
+      stepMarkedSuccessfully: 'Étape ${step} marquée comme ${status} avec succès.',
+    },
+    stepTranslations: {
+      morningEntryStatus: 'Entrée matin',
+      morningExitStatus: 'Sortie matin',
+      afternoonEntryStatus: 'Entrée après-midi',
+      afternoonExitStatus: 'Sortie après-midi',
+      overallStatus: 'Statut global'
+    },
       headers: [
         { title: "Agent", key: "User", sortable: false },
         { title: "Environnement", key: "environnement", sortable: false },
@@ -201,6 +215,14 @@ export default {
   methods: {
     ...mapActions(['getPresences', 'updatePresenceField','updateOverallStatus']),
     ...mapActions({ fetchAllAgents: "agent/fetchAllAgents" }),
+    formatMessage(message, replacements) {
+    let formattedMessage = message;
+    for (const key in replacements) {
+      const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
+      formattedMessage = formattedMessage.replace(regex, replacements[key]);
+    }
+    return formattedMessage;
+  },
     async acceptAllStatus() {
   try {
     // Determine the fields to update based on bool value
@@ -231,10 +253,10 @@ export default {
       headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` }
     });
 
-    this.showSnackbar('All statuses have been accepted.', 'success');
+    this.showSnackbar('Tous les statuts ont été acceptés.', 'success');
     await this.fetch(this.options);
   } catch (error) {
-    this.showSnackbar('Error accepting all statuses: ' + error.message, 'error');
+    this.showSnackbar(this.snackbarMessages.errorAcceptingAllStatuses, 'error');
   } finally {
     this.loading = false;
   }
@@ -261,10 +283,15 @@ export default {
         });
 
         this.saveProgress(item.id, currentStep, status);
-        this.showSnackbar(`Étape ${currentStep} marquée comme ${status} avec succès`, 'success');
+       // this.showSnackbar(`Étape ${currentStep} marquée comme ${status} avec succès`, 'success');
+       const translatedStep = this.stepTranslations[currentStep] || currentStep;
+      this.showSnackbar(
+        this.formatMessage(this.snackbarMessages.stepMarkedSuccessfully, { step: translatedStep, status: status }),
+        'success'
+      );
         await this.fetch(this.options);
       } catch (error) {
-        this.showSnackbar(`Erreur lors de la marquage de l'étape : ${error}`, 'error');
+        this.showSnackbar(`Erreur lors de la marquage de l'étape`, 'error');
       }
     },
     determineCurrentStep(item) {
@@ -329,7 +356,7 @@ export default {
     },
     exportToExcel() {
       const modifiedData = this.presencesforacceptance.map(item => ({
-        agent: item.User ? item.User.name : 'N/A',
+        agent: item.User,
         date: format(new Date(item.date), 'dd/MM/yyyy', { locale: fr }),
         environnement: item.environnement,
         entree: item.entree,
@@ -403,7 +430,6 @@ export default {
   async created() {
     await this.fetchAllAgents();
     await this.loadbool();
-    await this.fetch(this.options);
     this.applySavedProgress();
   },
 };

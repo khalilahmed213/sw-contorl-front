@@ -397,9 +397,20 @@ export default {
     },
    
     showSnackbar(message, color = 'success') {
-      this.snackbar.message = message;
+      const translatedMessage = this.translateMessage(message);
+      this.snackbar.message = translatedMessage;
       this.snackbar.color = color;
       this.snackbar.show = true;
+    },
+
+    translateMessage(message) {
+      const translationMap = {
+        'Schedule created successfully': 'Horaires créés avec succès',
+        'Schedule updated successfully': 'Horaires mis à jour avec succès',
+        'Schedule deleted successfully': 'Horaires supprimés avec succès',
+        // Add more translations as needed
+      };
+      return translationMap[message] || message; // Fallback to original message
     },
     validateTimeOrder(startField, endField) {
       if (!this.editedSchedule[startField] || !this.editedSchedule[endField]) {

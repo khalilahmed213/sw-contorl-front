@@ -11,29 +11,30 @@
         <v-form ref="form" v-model="valid">
           <!-- Replace editable fields with read-only text -->
           <v-list-item>
-            <v-list-item-title>Months:</v-list-item-title>
+            <v-list-item-title>Nombre de mois éffectués:</v-list-item-title>
             <v-list-item-subtitle>{{ agentInfo.months }}</v-list-item-subtitle>
           </v-list-item>
 
           <v-list-item>
             <v-list-item-title>Solde Ancien Conge:</v-list-item-title>
-            <v-list-item-subtitle>{{agentInfo.soldeAncienConge }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ agentInfo.soldeAncienConge }}</v-list-item-subtitle>
           </v-list-item>
 
           <v-list-item>
-            <v-list-item-title>Address:</v-list-item-title>
+            <v-list-item-title>Addresse:</v-list-item-title>
             <v-list-item-subtitle>{{ agentInfo.address }}</v-list-item-subtitle>
           </v-list-item>
 
           <v-list-item>
-            <v-list-item-title>Phone:</v-list-item-title>
+            <v-list-item-title>téléphone:</v-list-item-title>
             <v-list-item-subtitle>{{ agentInfo.phoneNumber }}</v-list-item-subtitle>
           </v-list-item>
           <v-text-field v-model="newPassword" :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showPassword ? 'text' : 'password'" label="Password" @click:append="togglePassword" />
+            :type="showPassword ? 'text' : 'password'" label="Mot de passe" :rules="passwordRules"
+            @click:append="togglePassword" />
 
           <v-btn text color="primary" class="mt-3" @click="togglePasswordReset">
-            {{ showPasswordField ? 'Cancel Password Reset' : 'Reset Password' }}
+            {{ showPasswordField ? 'annuler le resete du mot de passe' : 'reseter le mot de passe' }}
           </v-btn>
         </v-form>
       </v-card-text>
@@ -41,7 +42,7 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn v-if="showPasswordField" color="primary" @click="saveNewPassword" :disabled="!valid">
-          Update Password
+          Mettre à jour le mot de passe
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -49,7 +50,7 @@
 </template>
 
 <script>
-import { mapActions,mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 export default {
   data() {
     return {
@@ -59,14 +60,14 @@ export default {
       password: '',
       showPassword: false,
       passwordRules: [
-        v => !!v || 'le mot de passe est requis',
-        v => v.length >= 8 || 'le mot de passe doit ètre composé au moin de 8 caractères'
+        v => !!v || 'Le mot de passe est requis',
+        v => (v.length >= 8) || 'Le mot de passe doit contenir au moins 8 caractères'
       ],
     };
   },
-  
-  computed:{
-  ...mapGetters('agent',['agentInfo'])
+
+  computed: {
+    ...mapGetters('agent', ['agentInfo'])
   },
   methods: {
     ...mapActions('auth', ['resetPasswordProfile']),
@@ -81,22 +82,22 @@ export default {
     },
     async saveNewPassword() {
       try {
-       await this.updatePassword(this.newPassword)
+        await this.updatePassword(this.newPassword)
         this.showPasswordField = false;
         this.newPassword = '';
       } catch (error) {
-      console.error(error)
+        console.error(error)
       }
     },
     async updatePassword(newPassword) {
-      await this.resetPasswordProfile({id:this.$store.state.auth.user.id ,password:this.newPassword});
+      await this.resetPasswordProfile({ id: this.$store.state.auth.user.id, password: this.newPassword });
     }
   },
- async mounted(){
-  
+  async mounted() {
+
   },
-  async created(){
-    await this.$store.dispatch('agent/fetchAgentInfo',this.$store.state.auth.user.id );
+  async created() {
+    await this.$store.dispatch('agent/fetchAgentInfo', this.$store.state.auth.user.id);
   }
 };
 </script>

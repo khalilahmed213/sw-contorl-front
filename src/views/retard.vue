@@ -32,7 +32,7 @@
       </v-card-title>
       <v-card-text>
         <v-data-table-server
-          :headers="headers"
+          :headers="!isScheduleRecurring ? headers2 : headers"
           :items="retard"
           :options.sync="options"
           :items-length="total"
@@ -63,6 +63,12 @@ export default {
         { title: 'Date', align: 'start', key: 'date' },
         { title: 'Retard Matin', key: 'retardm' },
         { title: 'Retard Après Midi', key: 'retardam' },
+        { title: 'Retard total', key: 'retardtotal' },
+      ],
+      headers2: [
+        { title: 'Agent', align: 'start', key: 'User.name' },
+        { title: 'Date', align: 'start', key: 'date' },
+        { title: 'Retard Matin', key: 'retardm' },
         { title: 'Retard total', key: 'retardtotal' },
       ],
       months: [
@@ -98,8 +104,10 @@ export default {
   computed: {
     ...mapGetters("agent", ["allAgents"]), 
     ...mapGetters("retard",["retard", "total", "loading"]), 
+    ...mapGetters('schedule',["isRecurring"]),
   },
   methods: {
+    ...mapActions('schedule',['checkIfScheduleIsRecurring']),
     getRetardColor(retard) {
       // Parse the totalTardiness string
       const matches = retard.match(/(\d+)h\s*(\d+)m/);
@@ -168,6 +176,7 @@ await this.fetch(this.options)
   },
   async created() {
     await this.fetchAllAgents();
+    await this.checkIfScheduleIsRecurring(new Date());
    
   },
  

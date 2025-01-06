@@ -7,27 +7,20 @@
           <div>Demandes Conges</div>
 
         </v-btn>
-        <br/>
-        <br/>
+        <br />
+        <br />
         <v-btn color="primary" @click="refresh">
-          
+
           <div>Actualiser</div>
 
         </v-btn>
-        
+
       </v-card-title>
 
       <v-card-text>
-        <v-data-table-server
-          v-model:items-per-page="options.itemsPerPage"
-          :headers="headers"
-          :items="conges"
-          :items-length="totalItems"
-          :loading="loading"
-          item-value="id"
-          @update:options="fetchConges"
-          class="elevation-1"
-        >
+        <v-data-table-server v-model:items-per-page="options.itemsPerPage" :headers="headers" :items="conges"
+          :items-length="totalItems" :loading="loading" item-value="id" @update:options="fetchConges"
+          class="elevation-1">
           <template v-slot:item.startDate="{ item }">
             {{ formatDate(item.startDate) }}
           </template>
@@ -53,8 +46,27 @@
         <v-card-title>{{ formTitle }}</v-card-title>
         <v-card-text>
           <v-form ref="form" v-model="valid" @submit.prevent="saveItem">
-            <v-text-field v-model="editedItem.startDate" label="Date début" type="date" required></v-text-field>
-            <v-text-field v-model="editedItem.endDate" label="Date fin" type="date" required></v-text-field>
+            <v-date-input
+  v-model="editedItem.startDate"
+  label="Date début"
+  :rules="getStartDateRules()"
+  required
+  :min="getCurrentDate()"
+  locale="fr"
+  date-format="dd/MM/yyyy"
+  @change="changeDateStart"
+></v-date-input>
+
+<v-date-input
+  v-model="editedItem.endDate"
+  label="Date fin"
+  :rules="getEndDateRules()"
+  required
+  :min="editedItem.startDate || getCurrentDate()"
+  locale="fr"
+  date-format="dd/MM/yyyy"
+  @change="changeDateFin"
+></v-date-input>
             <v-text-field v-model="editedItem.raison" label="Raison" type="text" required></v-text-field>
             <v-alert v-if="formError" type="error" class="mt-3">{{ formError }}</v-alert>
           </v-form>
@@ -62,7 +74,9 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="closeDialog">Annuler</v-btn>
-          <v-btn color="blue darken-1" text @click="saveItem" :disabled="!valid">{{ editedItem.id ? 'Modifier' : 'Ajouter' }}</v-btn>
+          <v-btn color="blue darken-1" text @click="saveItem" :disabled="!valid">{{ editedItem.id ? 'Modifier' :
+            'Ajouter'
+            }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -90,11 +104,18 @@
 </template>
 
 <script>
+import axios from 'axios';
 import moment from 'moment';
-import { mapState, mapActions,mapGetters } from 'vuex';
+import { mapState, mapActions, mapGetters } from 'vuex';
 export default {
   data() {
+    
     return {
+      dateValidationMessages: {
+      required: 'Ce champ est obligatoire',
+      startDateFuture: 'La date de début doit être égale ou postérieure à aujourd\'hui',
+      endDateAfterStart: 'La date de fin doit être égale ou postérieure à la date de début',
+    },
       dialog: false,
       dialogDelete: false,
       valid: false,
@@ -108,19 +129,19 @@ export default {
         { title: 'Actions', key: 'actions', sortable: false },
       ],
       editedItem: {
-        startDate: '',
-        endDate: '',
+        startDate: null,
+        endDate:null,
         raison: '',
         status: '',
-        UserId: this.currentUserId, 
-        ScheduleId:''
+        UserId: this.currentUserId,
+        ScheduleId: ''
       },
       defaultItem: {
-        startDate: '',
-        endDate: '',
+        startDate: null,
+        endDate:null,
         raison: '',
         status: '',
-        ScheduleId:''
+        ScheduleId: ''
       },
       options: {
         page: 1,
@@ -129,12 +150,18 @@ export default {
       snackbar: false,
       snackbarMessage: '',
       snackbarColor: 'success',
+      menuStartDate: false,
+      menuEndDate: false,
+      rules: {
+        required: value => !!value || 'Ce champ est requis.',
+      },
     };
   },
   computed: {
-    ...mapState('conge', ['conges', 'totalItems', 'loading','penalites']),
-    ...mapGetters('calcule',['Data']),
-    ...mapGetters('schedule',['isselectedschedule']),
+   
+    ...mapState('conge', ['conges', 'totalItems', 'loading', 'penalites']),
+    ...mapGetters('calcule', ['Data']),
+    ...mapGetters('schedule', ['isselectedschedule']),
     formTitle() {
       return this.editedItem.id ? 'Modifier Congé' : 'Nouvelle Demande de Congé';
     },
@@ -143,57 +170,90 @@ export default {
     },
   },
   methods: {
-    ...mapActions('conge', ['fetchConges', 'createConge', 'updateConge', 'deleteConge','fetchUserConges','fetchUserPenalites']),
+    moment,
+    ...mapActions('conge', ['fetchConges', 'createConge', 'updateConge', 'deleteConge', 'fetchUserConges', 'fetchUserPenalites']),
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
-    ...mapActions('schedule',['fetchSelectedSchedule']),
-    ...mapActions('calcule',['fetchCongepData']),
+    ...mapActions('schedule', ['fetchSelectedSchedule']),
+    ...mapActions('calcule', ['fetchCongepData']),
     datesOverlap(congeStartDate, congeEndDate, penaliteStartDate, penaliteEndDate) {
-    // Convert dates to moment objects
-    const cStart = moment(congeStartDate);
-    const cEnd = moment(congeEndDate);
-    const pStart = moment(penaliteStartDate);
-    const pEnd = moment(penaliteEndDate);
+  const cStart = moment(congeStartDate, 'YYYY-MM-DD');
+  const cEnd = moment(congeEndDate, 'YYYY-MM-DD');
+  const pStart = moment(penaliteStartDate, 'YYYY-MM-DD');
+  const pEnd = moment(penaliteEndDate, 'YYYY-MM-DD');
+  return !(cEnd.isBefore(pStart) || cStart.isAfter(pEnd));
+},
 
-    // Check for overlap
-    return !(cEnd < pStart || cStart > pEnd);
-  },
+getCurrentDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+},
     async fetchConges(newOptions) {
       if (newOptions) {
         this.options = newOptions;
       }
       const { page, itemsPerPage, sortBy } = this.options;
       const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'reference';
-      const sortOrder = sortBy && sortBy.length > 0  ? sortBy[0].order : 'asc';
+      const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'asc';
       await this.fetchUserConges({
         page,
         limit: itemsPerPage,
         sortBy: sortKey,
         sortOrder,
         UserId: this.currentUserId,
-      });
-      
+      })
     },
-async refresh(){
-  await this.fetchConges(this.options)
-},
+    async refresh() {
+      await this.fetchConges(this.options)
+    },
     openAddDialog() {
-      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId, ScheduleId:null};
+      this.editedItem = { ...this.defaultItem, UserId: this.currentUserId, ScheduleId: null };
       this.dialog = true;
     },
-
-    editItem(item) {
+    async editItem(item) {
+      const response = await axios.get('http://localhost:3000/api/conges/status', {
+      params: { id:item.id },
+      headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+    });
+      if(response.data.result){
+        this.showSnackbar('ce congé a été confirmer veillez actualiser', 'success');
+        return;
+      } else{
       this.editedItem = { ...item };
       this.dialog = true;
+    }
     },
     canDelete(item) {
       return item.status.toLowerCase() === 'en attente';
     },
-    deleteItem(item) {
-      this.editedItem = { ...item };
-      this.dialogDelete = true;
-    },
+    async deleteItem(item) {
+  try {
+    const response = await axios.get('http://localhost:3000/api/conges/status', {
+      params: { id: item.id },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    });
+
+    if (response.data.result) {
+      this.showSnackbar('Le statut de ce congé a été modifié, veuillez actualiser', 'error');
+      await this.fetchConges(this.options);
+      return;
+    }
+
+    this.editedItem = { ...item };
+    this.dialogDelete = true;
+  } catch (error) {
+    console.error('Erreur lors de la vérification du statut:', error);
+    this.showSnackbar('Erreur lors de la vérification du statut du congé', 'error');
+  }
+},
 
     closeDialog() {
       this.dialog = false;
@@ -205,56 +265,119 @@ async refresh(){
     closeDelete() {
       this.dialogDelete = false;
     },
-
-    async saveItem() {
-  if (this.$refs.form.validate()) {
-    this.formError = null;
-
-    // Check for overlaps with penalites
-    const penalites = this.penalites; // Corrected access
-    const congeStartDate = this.editedItem.startDate;
-    const congeEndDate = this.editedItem.endDate;
-
-    if (Array.isArray(penalites)) { // Added type check
-      for (const penalite of penalites) {
-        if (this.datesOverlap(congeStartDate, congeEndDate, penalite.startDate, penalite.endDate)) {
-          this.showSnackbar('Vous ne pouvez pas passer un conge car vous avez déjà une pénalité.', 'error');
-          this.closeDialog();
-          return;
-        }
-      }
-    } else {
-      console.error('penalites is not an array');
+   
+    getStartDateRules() {
+  return [
+    v => !!v || this.dateValidationMessages.required,
+    v => {
+      if (!v) return true;
+      const today = moment(this.getCurrentDate(), 'YYYY-MM-DD');
+      const startDate = moment(v, 'DD/MM/YYYY');
+      return startDate.isSameOrAfter(today) || this.dateValidationMessages.startDateFuture;
     }
+  ];
+},
 
-    try {
-      if (this.editedItem.id) {
-        await this.updateConge({ id: this.editedItem.id, congeData: this.editedItem });
-        this.showSnackbar('Congé mis à jour avec succès', 'success');
-      } else {
-        await this.createConge(this.editedItem);
-        this.showSnackbar('Congé ajouté avec succès', 'success');
-      }
-      this.closeDialog();
-      await this.fetchConges(this.options);
-    } catch (error) {
-      console.error('Échec de l\'enregistrement du congé:', error);
-      this.showSnackbar('Erreur lors de l\'enregistrement du congé', 'error');
+getEndDateRules() {
+  return [
+    v => !!v || this.dateValidationMessages.required,
+    v => {
+      if (!this.editedItem.startDate || !v) return true;
+      const startDate = moment(this.editedItem.startDate, 'YYYY-MM-DD');
+      const endDate = moment(v, 'DD/MM/YYYY');
+      return endDate.isSameOrAfter(startDate) || this.dateValidationMessages.endDateAfterStart;
     }
+  ];
+},
+
+    validateDates() {
+      if (!this.editedItem.startDate || !this.editedItem.endDate) return;
+      
+      const startDate = moment(this.editedItem.startDate).startOf('day');
+      const endDate = moment(this.editedItem.endDate).startOf('day');
+      
+      if (endDate.isBefore(startDate)) {
+        this.editedItem.endDate = this.editedItem.startDate;
+      }
+    },
+
+    changeDateStart(value) {
+  const date = moment(value, 'DD/MM/YYYY').format('YYYY-MM-DD');
+  this.editedItem.startDate = date;
+  this.validateDates();
+  if (this.$refs.form) {
+    this.$nextTick(() => {
+      this.$refs.form.validate();
+    });
   }
 },
 
-    async deleteItemConfirm() {
-      try {
-        await this.deleteConge(this.editedItem.id);
-        this.closeDelete();
-        await this.fetchConges(this.options);
-        this.showSnackbar('Congé supprimé avec succès', 'success');
-      } catch (error) {
-        console.error('Échec de la suppression du congé:', error);
-        this.showSnackbar('Erreur lors de la suppression du congé', 'error');
+changeDateFin(value) {
+  const date = moment(value, 'DD/MM/YYYY').format('YYYY-MM-DD');
+  this.editedItem.endDate = date;
+  this.validateDates();
+  if (this.$refs.form) {
+    this.$nextTick(() => {
+      this.$refs.form.validate();
+    });
+  }
+},
+changeDateStart(value) {
+  this.editedItem.startDate = value;
+  this.validateDates();
+  // Only validate if form exists
+  if (this.$refs.form) {
+    this.$nextTick(() => {
+      this.$refs.form.validate();
+    });
+  }
+},
+
+// Fix the changeDateFin method
+changeDateFin(value) {
+  this.editedItem.endDate = value;
+  this.validateDates();
+  // Only validate if form exists
+  if (this.$refs.form) {
+    this.$nextTick(() => {
+      this.$refs.form.validate();
+    });
+  }
+},
+    async saveItem() {
+
+      
+      if (this.$refs.form.validate()) {
+        this.formError = null;
+        try {
+          if (this.editedItem.id) {
+            await this.updateConge({ id: this.editedItem.id, congeData: this.editedItem });
+            this.showSnackbar('Congé mis à jour avec succès', 'success');
+          } else {
+            await this.createConge(this.editedItem);
+            this.showSnackbar('Congé ajouté avec succès', 'success');
+          }
+          this.closeDialog();
+          await this.fetchConges(this.options);
+        } catch (error) {
+          console.error('Échec de l\'enregistrement du congé:', error);
+          this.showSnackbar('Erreur lors de l\'enregistrement du congé', 'error');
+        }
       }
     },
+
+    async deleteItemConfirm() {
+  try {
+    await this.deleteConge(this.editedItem.id);
+    this.showSnackbar('Congé supprimé avec succès', 'success');
+    this.closeDelete();
+    await this.fetchConges(this.options);
+  } catch (error) {
+    console.error('Échec de la suppression du congé:', error);
+    this.showSnackbar('Erreur lors de la suppression du congé', 'error');
+    this.closeDelete();
+  }
+},
 
     showSnackbar(message, color = 'success') {
       this.snackbarMessage = message;
@@ -274,21 +397,45 @@ async refresh(){
           return 'grey';
       }
     },
-    
     formatDate(date) {
-      const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-      return new Date(date).toLocaleDateString('fr-FR', options);
-    },
+  const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+  return new Date(date).toLocaleDateString('fr-FR', options);
+}
 
   },
-  async created(){
-
-await this.fetchCongepData(this.currentUserId)
-await this.fetchSelectedSchedule()
-await this.fetchUserPenalites(this.currentUserId);
+  async created() {
+    await this.fetchSelectedSchedule()
+    await this.fetchUserPenalites(this.currentUserId);
   },
+  watch: {
+  'editedItem.startDate': {
+    handler(newVal) {
+      if (newVal) {
+        this.validateDates();
+        // Only validate if form exists
+        if (this.$refs.form) {
+          this.$nextTick(() => {
+            this.$refs.form.validate();
+          });
+        }
+      }
+    }
+  },
+  'editedItem.endDate': {
+    handler(newVal) {
+      if (newVal) {
+        this.validateDates();
+        // Only validate if form exists
+        if (this.$refs.form) {
+          this.$nextTick(() => {
+            this.$refs.form.validate();
+          });
+        }
+      }
+    }
+  }
+}
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

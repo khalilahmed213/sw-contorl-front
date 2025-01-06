@@ -116,12 +116,11 @@ export default {
   },
   async saveEdit(item) {
    try {
-    console.log('da5let')
     const stuff=item.id;
     const data = this.CongeData.find(item => item.id=== stuff)
     const response = await axios.put(
         'http://localhost:3000/api/update-solde-ancien-conge', 
-        { id: item.id, soldeAncienConge: item.RESTANCIENCONGE+data.sanction}, 
+        { id: item.id, soldeAncienConge: item.RESTANCIENCONGE}, 
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`, 

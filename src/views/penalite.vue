@@ -69,16 +69,24 @@
             item-value="id"
             label="Agents"
           ></v-select>
-          <v-text-field
-            v-model="editedItem.startDate"
-            label="Date début Pénalité"
-            type="date"
-          ></v-text-field>
-          <v-text-field
-            v-model="editedItem.endDate"
-            label="Date Fin Pénalité"
-            type="date"
-          ></v-text-field>
+          <v-date-input
+              v-model="editedItem.startDate"
+              label="Date début"
+              :rules="[v => !!v || 'La date est requise', validateDate]"
+              required
+              :min="getCurrentDate()"
+              locale="fr"
+              date-format="dd/MM/yyyy"
+            ></v-date-input>
+            <v-date-input
+              v-model="editedItem.endDate"
+              label="Date fin"
+              :rules="[v => !!v || 'La date est requise', validateDate]"
+              required
+              :min="getCurrentDate()"
+              locale="fr"
+              date-format="dd/MM/yyyy"
+            ></v-date-input>
           <v-text-field
             v-model="editedItem.raison"
             label="Raison"
@@ -114,11 +122,10 @@
       <v-card>
         <v-card-title>Détails de la pénalité</v-card-title>
         <v-card-text>
-          <div>Agent: {{ currentItem.UserId }}</div>
+          <div>Agent: {{ currentItem.agent}}</div>
           <div>Date début: {{ formatDate(currentItem.startDate) }}</div>
           <div>Date fin: {{ formatDate(currentItem.endDate) }}</div>
           <div>Raison: {{ currentItem.raison }}</div>
-          <div>Horaires: {{ currentItem.ScheduleId }}</div>
         </v-card-text>
         <v-card-actions>
           <v-btn color="blue darken-1" text @click="viewDialog = false">Fermer</v-btn>
@@ -138,9 +145,11 @@
 </template>
 
 <script>
-import moment from "moment";
+import moment from 'moment';
+import 'moment/locale/fr';
+moment.locale('fr')
 import { mapActions, mapGetters } from "vuex";
-import * as XLSX from 'xlsx'; // Make sure to install this package: npm install xlsx
+import * as XLSX from 'xlsx'; 
 
 export default {
   data() {
@@ -158,8 +167,8 @@ export default {
       isEditing: false,
       editedIndex: -1,
       editedItem: {
-        startDate: "",
-        endDate: "",
+        startDate:null,
+        endDate:null,
         raison: "",
         UserId: null,
       },
@@ -206,11 +215,18 @@ export default {
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
+    getCurrentDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+},
     openAddDialog() {
       this.isEditing = false;
       this.editedItem = {
-        startDate: "",
-        endDate: "",
+        startDate:null,
+        endDate: null,
         raison: "",
         UserId: null,
         ScheduleId: null,
@@ -234,16 +250,24 @@ export default {
       this.dialog = true;
     },
     async saveItem() {
-      if (this.isEditing) {
-        await this.updatePenalite(this.editedItem);
-        this.showSnackbar('Pénalité mise à jour avec succès');
-      } else {
-        await this.createPenalite(this.editedItem);
-        this.showSnackbar('Pénalité ajoutée avec succès');
-      }
-      await this.fetchPenalites(this.options);
-      this.closeDialog();
-    },
+  const startDate = Date.parse(this.editedItem.startDate);
+  const endDate = Date.parse(this.editedItem.endDate);
+  
+  if (!isNaN(startDate) && !isNaN(endDate) && startDate > endDate) {
+    alert("Respecter l'ordre des dates : La date de début ne peut pas être postérieure à la date de fin.");
+    return;
+  }
+
+  if (this.isEditing) {
+    await this.updatePenalite(this.editedItem);
+    this.showSnackbar('Pénalité mise à jour avec succès');
+  } else {
+    await this.createPenalite(this.editedItem);
+    this.showSnackbar('Pénalité ajoutée avec succès');
+  }
+  await this.fetchPenalites(this.options);
+  this.closeDialog();
+},
     closeDialog() {
       this.dialog = false;
       this.editedItem = {
@@ -331,22 +355,7 @@ export default {
   },
   mounted(){
   },
-  watch: {
  
-
-    'editedItem.startDate': function(newVal) {
-      if (new Date(newVal) > new Date(this.editedItem.endDate)) {
-        alert("Respecter l'ordre des dates : La date de début ne peut pas être postérieure à la date de fin.");
-        this.editedItem.startDate = '';
-      }
-    },
-    'editedItem.endDate': function(newVal) {
-      if (new Date(newVal) < new Date(this.editedItem.startDate)) {
-        alert("Respecter l'ordre des dates : La date de fin ne peut pas être antérieure à la date de début.");
-        this.editedItem.endDate = '';
-      }
-    }
-  }
 };
 </script>
 
