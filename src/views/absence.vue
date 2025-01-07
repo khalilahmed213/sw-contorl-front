@@ -42,7 +42,7 @@
         <v-dialog v-model="showAddAbsenceModal" max-width="600px">
           <v-card>
             <v-card-title>
-              <span class="text-h5">Add Absence</span>
+              <span class="text-h5">ajouter une absence</span>
             </v-card-title>
             <v-card-text>
               <v-container>
@@ -58,14 +58,14 @@
                       :items="allAgents"
                       item-title="name"
                       item-value="id"
-                      label="Select Agent"
+                      label="Selectionner un Agent"
                       required
                     ></v-select>
                   </v-col>
                   <v-col cols="12">
                     <v-text-field
                       v-model="newAbsence.raison"
-                      label="Reason"
+                      label="raison"
                       required
                     ></v-text-field>
                   </v-col>
@@ -74,8 +74,8 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="showAddAbsenceModal = false">Close</v-btn>
-              <v-btn color="blue darken-1" text @click="add">Save</v-btn>
+              <v-btn color="blue darken-1" text @click="showAddAbsenceModal = false">fermer</v-btn>
+              <v-btn color="blue darken-1" text @click="add">ajouter</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
