@@ -158,7 +158,9 @@ export default {
     };
   },
   computed: {
-   
+    error() {
+    return this.$store.getters['conge/getError'];
+  },
     ...mapState('conge', ['conges', 'totalItems', 'loading', 'penalites']),
     ...mapGetters('calcule', ['Data']),
     ...mapGetters('schedule', ['isselectedschedule']),
@@ -344,28 +346,53 @@ changeDateFin(value) {
     });
   }
 },
-    async saveItem() {
-
-      
-      if (this.$refs.form.validate()) {
-        this.formError = null;
-        try {
-          if (this.editedItem.id) {
-            await this.updateConge({ id: this.editedItem.id, congeData: this.editedItem });
-            this.showSnackbar('Congé mis à jour avec succès', 'success');
-          } else {
-            await this.createConge(this.editedItem);
-            this.showSnackbar('Congé ajouté avec succès', 'success');
+async saveItem() {
+  if (this.$refs.form.validate()) {
+    this.loading = true;
+    try {
+      if (this.editedItem.id) {
+        // Update existing conge
+        await axios.put(`http://localhost:3000/api/conges/${this.editedItem.id}`, this.editedItem, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
           }
-          this.closeDialog();
-          await this.fetchConges(this.options);
-        } catch (error) {
-          console.error('Échec de l\'enregistrement du congé:', error);
-          this.showSnackbar('Erreur lors de l\'enregistrement du congé', 'error');
-        }
+        });
+        this.showSnackbar('Congé mis à jour avec succès', 'success');
+      } else {
+        // Create new conge
+        await axios.post('http://localhost:3000/api/conges', this.editedItem, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+          }
+        });
+        this.showSnackbar('Congé ajouté avec succès', 'success');
       }
-    },
-
+      this.closeDialog();
+      await this.fetchConges(this.options);
+    } catch (error) {
+      let errorMessage = 'Une erreur est survenue';
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.statusText) {
+          errorMessage = error.response.statusText;
+        }
+      } else if (error.request) {
+        // No response received
+        errorMessage = 'Aucune réponse du serveur';
+      } else {
+        // Something else happened
+        errorMessage = error.message;
+      }
+      this.showSnackbar(errorMessage, 'error');
+    } finally {
+      this.loading = false;
+    }
+  }
+},
     async deleteItemConfirm() {
   try {
     await this.deleteConge(this.editedItem.id);

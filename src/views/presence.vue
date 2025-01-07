@@ -38,21 +38,23 @@
           <template v-slot:item.sortie="{ item }">
             {{ item.sortie }}
           </template>
-          <template v-slot:item.prodMatin="{ item }">
-            {{ item.prodMatin }}
-          </template>
+        
           <template v-slot:item.entree1="{ item }">
             {{ item.entree1 }}
           </template>
           <template v-slot:item.sortie1="{ item }">
             {{ item.sortie1 }}
           </template>
-          <template v-slot:item.prodApresMidi="{ item }">
-            {{ item.prodApresMidi }}
-          </template>
-          <template v-slot:item.prod="{ item }">
-            {{ item.prod }}
-          </template>
+        
+          <template v-slot:item.prodMatin="{ item }">
+  {{ formatProductionTime(item.prodMatin) }}
+</template>
+<template v-slot:item.prodApresMidi="{ item }">
+  {{ formatProductionTime(item.prodApresMidi) }}
+</template>
+<template v-slot:item.prod="{ item }">
+  {{ formatProductionTime(item.prod) }}
+</template>
           <template v-slot:item.commentaires="{ item }">
             {{ item.commentaires }}
           </template>
@@ -158,7 +160,16 @@ export default {
     ...mapActions(["fetchSchedules", "toggleSelected"]),
 
     
-  
+    formatProductionTime(minutes) {
+    if (minutes === 'N/A' || minutes === null || minutes === undefined) {
+      return 'N/A';
+    }
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  },
+
+
     formatDate(date) {
       const day = date.getDate();
       const month = date.getMonth() + 1;

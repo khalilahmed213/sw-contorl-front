@@ -127,6 +127,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import moment from 'moment';
+import axios from 'axios';
 export default {
   data() {
     return {
@@ -238,17 +239,44 @@ openAddDialog() {
     this.dialog = true;
   },
 
-    editItem(item) {
+  async editItem(item) {
+      const response = await axios.get('http://localhost:3000/api/autorisation/status', {
+      params: { id:item.id },
+      headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+    });
+      if(response.data.result){
+        this.showSnackbar('le statut de cette autorisation a été modifié veillez actualiser', 'success');
+        return;
+      } else{
       this.editedItem = { ...item };
       this.dialog = true;
+    }
     },
 
-    deleteItem(item) {
-      if (this.canDelete(item)) {
-        this.editedItem = { ...item };
-        this.dialogDelete = true;
-      }
-    },
+    async deleteItem(item) {
+  try {
+    const response = await axios.get('http://localhost:3000/api/autorisation/status', {
+      params: { id: item.id },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    });
+
+    if (response.data.result) {
+      this.showSnackbar('Le statut de cette autorisation a été modifié, veuillez actualiser', 'error');
+      await this.fetchConges(this.options);
+      return;
+    }
+
+    this.editedItem = { ...item };
+    this.dialogDelete = true;
+  } catch (error) {
+    console.error('Erreur lors de la vérification du statut:', error);
+    this.showSnackbar('Erreur lors de la vérification du statut du congé', 'error');
+  }
+},
 
     closeDialog() {
       this.dialog = false;
@@ -329,7 +357,7 @@ openAddDialog() {
       return date;
     },
 
-    async saveItem() {
+   async saveItem() {
       if (this.$refs.form.validate()) {
         const startTime = this.parseTime(this.editedItem.heureDebut);
         const endTime = this.parseTime(this.editedItem.heureFin);
@@ -344,31 +372,48 @@ openAddDialog() {
 
         try {
           if (this.editedItem.id) {
-            await this.updateAutorisation({
-              id: this.editedItem.id,
-              autorisationData: {
+            // Update existing autorisation
+            const response = await axios.put(
+              `http://localhost:3000/api/autorisations/${this.editedItem.id}`,
+              {
                 date: this.editedItem.date,
                 heureDebut: this.editedItem.heureDebut,
-                heureFin:this.editedItem.heureFin, 
+                heureFin: this.editedItem.heureFin,
                 UserId: this.currentUserId
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
               }
-            });
-           
+            );
             this.showSnackbar('Autorisation mise à jour avec succès', 'success');
           } else {
-            await this.createAutorisation({
-              date: this.editedItem.date,
-              heureDebut: this.editedItem.heureDebut,
-              heureFin: this.editedItem.heureFin,
-              UserId: this.currentUserId,
-            });
+            // Create new autorisation
+            const response = await axios.post(
+              'http://localhost:3000/api/autorisations',
+              {
+                date: this.editedItem.date,
+                heureDebut: this.editedItem.heureDebut,
+                heureFin: this.editedItem.heureFin,
+                UserId: this.currentUserId
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+              }
+            );
             this.showSnackbar('Autorisation ajoutée avec succès', 'success');
-            console.log(this.editedItem)
           }
           this.closeDialog();
           await this.fetchAutorisations(this.options);
         } catch (error) {
-          this.showSnackbar('Erreur lors de l\'enregistrement de l\'autorisation', 'error');
+          if (error.response && error.response.data && error.response.data.message) {
+            this.showSnackbar(error.response.data.message, 'error');
+          } else {
+            this.showSnackbar('Une erreur s\'est produite', 'error');
+          }
         }
       }
     },

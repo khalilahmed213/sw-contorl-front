@@ -58,9 +58,9 @@
                 (v) => isValidEmail(v) || 'Email invalide',
               ]"></v-text-field>
               <v-text-field v-model="editedAgent.UserInfo.months" label="Nombre de mois" type="number" :rules="[
-                (v) => !!v || 'Nombre de mois requis',
-                (v) => v > 0 || 'Nombre de mois doit être supérieur à 0',
-              ]"></v-text-field>
+        (v) => !!v || 'Nombre de mois requis',
+        (v) => (v > 0 && v <= 12) || 'Nombre de mois doit être entre 1 et 12',
+      ]"></v-text-field>
               <v-text-field v-model="editedAgent.UserInfo.soldeAncienConge" label="Reste Ancien Conge" type="number"
                 :rules="[
                   (v) => !!v || 'Reste Ancien Conge requis',

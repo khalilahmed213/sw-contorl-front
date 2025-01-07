@@ -27,7 +27,7 @@ const mutations = {
   },
   SET_PENALITES(state, penalites) {
     state.penalites = penalites;
-  }
+  },
 };
 
 const actions = {
@@ -77,7 +77,7 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
-
+  
   async updateConge({ commit }, { id, congeData }) {
     commit('SET_LOADING', true);
     try {
@@ -87,6 +87,7 @@ const actions = {
         }
       });
     } catch (error) {
+      console.log(error.message)
       commit('SET_ERROR', error.message);
     } finally {
       commit('SET_LOADING', false);
@@ -153,6 +154,7 @@ const getters = {
   getTotalItems: state => state.totalItems,
   isLoading: state => state.loading,
   getError: state => state.error,
+  
 };
 
 export default {
