@@ -147,8 +147,6 @@
         </div>
       </v-card-text>
     </v-card>
-
-    <!-- Completed State -->
     <v-card v-else class="pa-10" elevation="10" max-width="500">
       <v-card-title class="text-h4 text-center">
         Fin de pointage
@@ -165,6 +163,8 @@ import axios from "axios";
 export default {
   data() {
     return {
+      fetchedDate: "", // To store the fetched date
+      fetchedTime: "",
       hasConge: false,
       hasPenalite: false,
       loading: true,
@@ -181,17 +181,11 @@ export default {
       afternoonExit: false,
     },
       bool: null,
-      formattedTime: ''
+     
     };
   },
   computed: {
-    formattedDate() {
-      return new Intl.DateTimeFormat("fr-FR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }).format(new Date());
-    },
+
     buttonDisabled() {
     return {
       morningExit: this.buttonStatus.morningExit,
@@ -207,6 +201,42 @@ export default {
   },
   methods: {
     ...mapActions(["addPointage", "updatePresence"]),
+    async fetchNetworkTime() {
+    try {
+      // Fetch the current UTC time from the World Time API
+      const response = await axios.get("http://worldtimeapi.org/api/ip");
+      const datetime = new Date(response.data.utc_datetime);
+
+      // Format the date and time
+      this.formattedDate = new Intl.DateTimeFormat("fr-FR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(datetime);
+
+      this.formattedTime = moment(datetime).format("HH:mm:ss");
+    } catch (error) {
+      console.error("Error fetching network time:", error);
+
+      // Fallback to local time if the network time fetch fails
+      this.formattedDate = new Intl.DateTimeFormat("fr-FR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date());
+
+      this.formattedTime = moment().format("HH:mm:ss");
+    }
+  },
+  startNetworkTimeInterval() {
+    // Fetch the network time immediately
+    this.fetchNetworkTime();
+
+    // Set an interval to fetch the network time every second
+    this.networkTimeInterval = setInterval(() => {
+      this.fetchNetworkTime();
+    },100000000000000);
+  },
     async fetchButtonStatus() {
   if (this.presenceId && this.currentButton) {
     const response = await axios.get(
@@ -324,41 +354,17 @@ export default {
     },
 
     async handleClick(buttonNumber) {
-  const time = moment().format("HH:mm:ss");
   const fieldMap = { 1: "entree", 2: "sortie", 3: "entree1", 4: "sortie1" };
 
-  // Determine which fields to update based on buttonNumber and schedule type
-  let updateFields = {};
-  if (!this.bool) { // Recurring schedule
-    switch (buttonNumber) {
-      case 1:
-        updateFields = { entree: time };
-        break;
-      case 2:
-        updateFields = { sortie: time };
-        break;
-      case 3:
-        updateFields = { entree1: time };
-        break;
-      case 4:
-        updateFields = { sortie1: time };
-        break;
-    }
-  } else { // Non-recurring schedule
-    switch (buttonNumber) {
-      case 1:
-        updateFields = { entree: time };
-        break;
-      case 2:
-        updateFields = { sortie: time };
-        break;
-    }
-  }
+  // Determine which field to update based on buttonNumber
+  const field = fieldMap[buttonNumber];
+  const updateFields = {};
+  updateFields[field] = true; // Set the field to true
 
-  // Update presence with the determined fields
+  // Update presence with the determined field
   await this.updatePresence({
     id: this.presenceId,
-    userId:this.currentUserId,
+    userId: this.currentUserId,
     ...updateFields,
   });
 
@@ -366,15 +372,13 @@ export default {
   await this.fetchButtonStatus();
 
   // Update currentButton based on schedule type and buttonNumber
-  if (!this.bool) {
-    // Recurring schedule
+  if (!this.bool) { // Recurring schedule
     if (buttonNumber < 4) {
       this.currentButton++;
     } else {
       this.isCompleted = true;
     }
-  } else {
-    // Non-recurring schedule
+  } else { // Non-recurring schedule
     if (buttonNumber === 1) {
       this.currentButton = 2;
     } else if (buttonNumber === 2) {
@@ -461,17 +465,20 @@ watch: {
     },
   },
 },
+beforeDestroy() {
+  if (this.networkTimeInterval) {
+    clearInterval(this.networkTimeInterval);
+  }
+},
   async created() {
-    setInterval(() => this.formattedTime = moment().format("HH:mm:ss"), 1000);
-    this.formattedTime = moment().format("HH:mm:ss");
+    this.startNetworkTimeInterval();
     await this.fetchCongeToday();
     await this.fetchPenaliteToday();
     await this.loadbool();
     this.loading = false;
   },
   mounted() {
-    setInterval(() => this.formattedTime = moment().format("HH:mm:ss"), 1000);
-  this.formattedTime = moment().format("HH:mm:ss");
+   
     this.restoreState();
   },
 };

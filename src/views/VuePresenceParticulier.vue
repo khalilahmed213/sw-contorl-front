@@ -1,91 +1,103 @@
 <template>
-  <div class="select-container">
-    <v-select
-      v-model="selectedAgent"
-      :items="allAgents"
-      item-title="name"
-      item-value="id"
-      label="Filtrer par agent"
-      @update:modelValue="fetch"
-      class="mr-2"
-      style="max-width: 200px"
-    ></v-select>
-  </div>
-  
-  <v-overlay :model-value="isLoading" class="align-center justify-center">
-    <v-progress-circular
-      color="primary"
-      indeterminate
-      size="64"
-    ></v-progress-circular>
-  </v-overlay>
+  <v-container>
+    <!-- Agent Selection -->
+    <v-row justify="end" class="mb-4">
+      <v-col cols="auto">
+        <v-select
+          v-model="selectedAgent"
+          :items="allAgents"
+          item-title="name"
+          item-value="id"
+          label="Filtrer par agent"
+          density="compact"
+          style="width: 200px"
+          @update:model-value="fetch"
+        ></v-select>
+      </v-col>
+    </v-row>
 
-  <div v-if="!isLoading && leaveBalances" class="table-container">
-    <table class="vertical-table">
-      <tbody>
-        <tr>
-          <th style="background-color: blue; color: aliceblue">Nb Mois effectué</th>
-          <td>{{ leaveBalances.monthsDone || 'N/A' }}</td>
-        </tr>
-        <tr>
-          <th style="background-color: blue; color: aliceblue">SOLDE CONGE</th>
-          <td>{{ leaveBalances.SOLDECONGE || 'N/A' }}</td>
-        </tr>
-        <tr>
-          <th style="background-color: blue; color: aliceblue">CONGE PRISE</th>
-          <td style="background-color: yellow">{{ leaveBalances.CONGEPRISE || 'N/A' }}</td>
-        </tr>
-        <tr>
-          <th style="background-color: blue; color: aliceblue">Sanction</th>
-          <td style="background-color: red">{{ leaveBalances.sanction || 'N/A' }}</td>
-        </tr>
-        <tr>
-          <th style="background-color: blue; color: aliceblue">RESTE CONGE</th>
-          <td style="background-color: yellowgreen">{{ leaveBalances.RESTCONGE || 'N/A' }}</td>
-        </tr>
-        <tr>
-          <th style="background-color: blue; color: aliceblue">Rest ancien congé</th>
-          <td>{{ leaveBalances.RESTANCIENCONGE || 'N/A' }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <table class="main-table">
-      <thead>
-        <tr>
-          <th colspan="1" style="background-color: bisque">
-            Projet:{{ leaveBalances.projects && leaveBalances.projects[0] ? leaveBalances.projects[0].name : 'N/A' }}
-          </th>
-          <th colspan="3" style="background-color: bisque">{{ leaveBalances.name || 'N/A' }}</th>
-          <th colspan="1" style="background-color: bisque">
-            Aujourd'hui: {{ currentDate }}
-          </th>
-        </tr>
-        <tr style="background-color: blue; color: aliceblue">
-          <th style="background-color: blue; color: aliceblue">
-            Date début congé
-          </th>
-          <th style="background-color: blue; color: aliceblue">
-            Date Fin Congé
-          </th>
-          <th style="background-color: blue; color: aliceblue">Nb des jours</th>
-          <th style="background-color: blue; color: aliceblue" colspan="3">
-            Raison
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(data, index) in leaveBalances.conges" :key="index">
-          <td>{{ formatDate(data.startDate) }}</td>
-          <td>{{ formatDate(data.endDate) }}</td>
-          <td>{{ data.nbrDeJour }}</td>
-          <td colspan="3">{{ data.raison }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div v-else-if="!isLoading && !leaveBalances">
-    No leave balance data available.
-  </div>
+    <!-- Loading Overlay -->
+    <v-overlay
+      :model-value="isLoading"
+      class="align-center justify-center"
+      scrim="#fff"
+      persistent
+    >
+      <v-progress-circular
+        color="primary"
+        indeterminate
+        size="64"
+      ></v-progress-circular>
+    </v-overlay>
+
+    <template v-if="!isLoading && leaveBalances">
+      <v-row>
+        <!-- Vertical Summary Table -->
+        <v-col cols="3">
+          <v-card height="100%">
+            <v-table density="compact" height="100%">
+              <tbody>
+                <tr>
+                  <th class="bg-primary text-white text-caption" style="width: 120px">Nb Mois effectué</th>
+                  <td class="text-caption">{{ leaveBalances.monthsDone || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <th class="bg-primary text-white text-caption">SOLDE CONGE</th>
+                  <td class="text-caption">{{ leaveBalances.SOLDECONGE || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <th class="bg-primary text-white text-caption">CONGE PRISE</th>
+                  <td class="text-caption bg-warning">{{ leaveBalances.CONGEPRISE || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <th class="bg-primary text-white text-caption">Sanction</th>
+                  <td class="text-caption bg-error">{{ leaveBalances.sanction || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <th class="bg-primary text-white text-caption">RESTE CONGE</th>
+                  <td class="text-caption bg-success-lighten-1">{{ leaveBalances.RESTCONGE || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <th class="bg-primary text-white text-caption">Rest ancien congé</th>
+                  <td class="text-caption">{{ leaveBalances.RESTANCIENCONGE || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </v-table>
+          </v-card>
+        </v-col>
+
+        <!-- Conge Data Table -->
+        <v-col cols="9">
+          <v-card>
+            <v-card-title class="d-flex justify-space-between pa-4 bg-secondary-lighten-4">
+              <span class="text-caption">Projet: {{ leaveBalances.projects?.[0]?.name || 'N/A' }}</span>
+              <span class="text-caption">{{ leaveBalances.name || 'N/A' }}</span>
+              <span class="text-caption">Aujourd'hui: {{ currentDate }}</span>
+            </v-card-title>
+            <v-data-table
+  :headers="headers"
+  :items="leaveBalances.conges || []"
+  density="compact"
+  class="elevation-1"
+>
+  <template v-slot:item.startDate="{ item }">
+    {{ formatDate(item.startDate) }}
+  </template>
+  <template v-slot:item.endDate="{ item }">
+    {{ formatDate(item.endDate) }}
+  </template>
+</v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
+
+    <v-row v-else-if="!isLoading && !leaveBalances">
+      <v-col>
+        <v-alert type="info" text="No leave balance data available."></v-alert>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -96,7 +108,35 @@ export default {
   data() {
     return {
       selectedAgent: null,
-      currentDate: moment().format('DD/MM/YYYY')
+      currentDate: moment().format('DD/MM/YYYY'),
+      headers: [
+        {
+          title: 'Date début congé',
+          key: 'startDate',
+          align: 'start',
+          sortable: true,
+        },
+        {
+          title: 'Date Fin Congé',
+          key: 'endDate',
+          align: 'start',
+          sortable: true,
+        },
+        {
+          title: 'Nb des jours',
+          key: 'nbrDeJour',
+          align: 'start',
+          sortable: true,
+        },
+        {
+          title: 'Raison',
+          key: 'raison',
+          align: 'start',
+          sortable: false,
+        },
+      ],
+      itemsPerPage: 10,
+      totalItems: 0,
     };
   },
   computed: {
@@ -120,6 +160,13 @@ export default {
       return dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
     },
   },
+  watch: {
+    'leaveBalances.conges'(newVal) {
+      if (newVal) {
+        this.totalItems = newVal.length;
+      }
+    }
+  },
   async created() {
     await this.fetchAllAgents();
     this.selectedAgent = parseInt(this.$route.params.id);
@@ -131,46 +178,14 @@ export default {
 </script>
 
 <style scoped>
-.table-container {
-  display: flex;
-  align-items: flex-start;
+.v-data-table ::v-deep th {
+  background-color: rgb(var(--v-theme-primary)) !important;
+  color: white !important;
 }
 
-.vertical-table {
-  border-collapse: collapse;
-  margin-right: 20px;
-}
-
-.vertical-table th,
-.vertical-table td {
-  border: 1px solid black;
-  padding: 8px;
-  text-align: left;
-}
-
-.vertical-table th {
-  background-color: #f2f2f2;
-}
-
-.main-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.main-table th,
-.main-table td {
-  border: 1px solid black;
-  padding: 8px;
-  text-align: left;
-}
-
-.main-table th {
-  background-color: #f2f2f2;
-}
-
-.select-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
+/* Adjust table cell padding */
+:deep(.v-table .v-table__wrapper > table > tbody > tr > td),
+:deep(.v-table .v-table__wrapper > table > tbody > tr > th) {
+  padding: 2px 8px !important;
 }
 </style>

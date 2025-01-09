@@ -387,6 +387,7 @@ async saveItem() {
         // Something else happened
         errorMessage = error.message;
       }
+      this.closeDialog()
       this.showSnackbar(errorMessage, 'error');
     } finally {
       this.loading = false;

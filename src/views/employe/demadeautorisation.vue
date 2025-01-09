@@ -410,8 +410,10 @@ openAddDialog() {
           await this.fetchAutorisations(this.options);
         } catch (error) {
           if (error.response && error.response.data && error.response.data.message) {
+            this.closeDialog();
             this.showSnackbar(error.response.data.message, 'error');
           } else {
+            this.closeDialog();
             this.showSnackbar('Une erreur s\'est produite', 'error');
           }
         }
