@@ -163,6 +163,8 @@ import axios from "axios";
 export default {
   data() {
     return {
+      formattedDate: "", // Add this
+      formattedTime: "",
       fetchedDate: "", // To store the fetched date
       fetchedTime: "",
       hasConge: false,
@@ -215,6 +217,10 @@ export default {
       }).format(datetime);
 
       this.formattedTime = moment(datetime).format("HH:mm:ss");
+
+      console.log("Fetched datetime:", datetime);
+      console.log("Formatted date:", this.formattedDate);
+      console.log("Formatted time:", this.formattedTime);
     } catch (error) {
       console.error("Error fetching network time:", error);
 
@@ -235,7 +241,7 @@ export default {
     // Set an interval to fetch the network time every second
     this.networkTimeInterval = setInterval(() => {
       this.fetchNetworkTime();
-    },100000000000000);
+    }, 1000); // Update this to 1000 (1 second)
   },
     async fetchButtonStatus() {
   if (this.presenceId && this.currentButton) {
@@ -418,7 +424,7 @@ export default {
   const savedState = JSON.parse(localStorage.getItem("pointageData"));
   const today = moment().format("YYYY-MM-DD");
 
-  if (savedState && savedState.lastPointageDate === today) {
+  if (savedState && savedState.lastPointageDate === this.formattedDate ) {
     this.presenceId = savedState.presenceId;
     this.selectedEnvironment = savedState.selectedEnvironment;
     this.environmentSelected = savedState.environmentSelected;
