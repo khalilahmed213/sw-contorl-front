@@ -13,6 +13,15 @@
           class="mr-2"
           style="max-width: 200px"
         ></v-select>
+        <v-select
+    v-model="options.selectedYear"
+    :items="yearsList"
+    label="Filtrer par année"
+    clearable
+    @update:modelValue="fetch"
+    class="mr-2"
+    style="max-width: 150px"
+  ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green"
           >Export Excel</v-btn
         >
@@ -91,9 +100,11 @@ export default {
         sortBy: ["date"],
         sortDesc: [true],
         selectedAgent: "",
+        selectedYear: new Date().getFullYear(),
         
       },
       editedItem: null,
+      selectedYear: new Date().getFullYear(),
     };
   },
   computed: {
@@ -113,6 +124,21 @@ export default {
     // Restore the original value
     Object.assign(item, this.originalItem);
     this.editedItem = null;
+  },
+  initYearsList() {
+  const currentYear = new Date().getFullYear();
+  const futureYears = 5; // Shows 5 years into the future
+  this.yearsList = Array.from(
+    { length: (currentYear + futureYears) - 2024 + 1 },
+    (_, i) => 2024 + i
+  );
+},
+
+  yearItemProps(year) {
+    return {
+      disabled: year < 2024,
+      title: year < 2024 ? 'Years before 2024 are disabled' : '',
+    };
   },
   async saveEdit(item) {
    try {
@@ -152,6 +178,7 @@ export default {
         sortBy: sortKey,
         order:sortOrder,
         userId: this.options.selectedAgent,
+        year: this.options.selectedYear,
       });
     }, 
     exportToExcel() {
@@ -184,6 +211,7 @@ console.log(this.CongeData)
   },
   async created() {
     await this.fetchAllAgents();
+    this.initYearsList();
   },
   watch: {
   editedItem: {

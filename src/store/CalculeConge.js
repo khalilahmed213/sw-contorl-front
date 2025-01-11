@@ -17,11 +17,11 @@ const getters = {
 };
 
 const actions = {
-  async fetchCongeData({ commit }, { userId, month, page, limit, sortBy, order }) {
+  async fetchCongeData({ commit }, { userId, month, page, limit, sortBy, order,year  }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/congecalcule', {
-        params: { userId, page, limit, sortBy, order },
+        params: { userId, page, limit, sortBy, order,year},
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
         },

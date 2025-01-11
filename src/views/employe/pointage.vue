@@ -216,7 +216,7 @@ export default {
         day: "numeric",
       }).format(datetime);
 
-      this.formattedTime = moment(datetime).format("HH:mm:ss");
+      this.formattedTime = moment(datetime).format("HH:mm");
 
       console.log("Fetched datetime:", datetime);
       console.log("Formatted date:", this.formattedDate);
@@ -241,7 +241,7 @@ export default {
     // Set an interval to fetch the network time every second
     this.networkTimeInterval = setInterval(() => {
       this.fetchNetworkTime();
-    }, 1000); // Update this to 1000 (1 second)
+    },60000);
   },
     async fetchButtonStatus() {
   if (this.presenceId && this.currentButton) {
