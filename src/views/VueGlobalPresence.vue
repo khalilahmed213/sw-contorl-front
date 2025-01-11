@@ -42,20 +42,22 @@
       </router-link>
     </template>
     <template #item.RESTANCIENCONGE="{ item }">
-  <div
-    v-if="editedItem !== item"
-    @click="editItem(item)"
-  >
+  <div v-if="!isCurrentYear">
     {{ item.RESTANCIENCONGE }}
   </div>
   <div v-else>
-    <input
-      type="number"
-      v-model="item.RESTANCIENCONGE"
-      @blur="saveEdit(item)"
-      @keyup.enter="saveEdit(item)"
-      @keyup.esc="cancelEdit(item)"
-    />
+    <div v-if="editedItem !== item" @click="editItem(item)">
+      {{ item.RESTANCIENCONGE }}
+    </div>
+    <div v-else>
+      <input
+        type="number"
+        v-model="item.RESTANCIENCONGE"
+        @blur="saveEdit(item)"
+        @keyup.enter="saveEdit(item)"
+        @keyup.esc="cancelEdit(item)"
+      />
+    </div>
   </div>
 </template>
         </v-data-table-server>
@@ -110,7 +112,10 @@ export default {
   computed: {
     ...mapGetters("agent", ["allAgents"]),
     ...mapGetters("CalculeConge",["CongeData", "pagination"]),
-    ...mapState( "CalculeConge",['loading']) 
+    ...mapState( "CalculeConge",['loading']) ,
+    isCurrentYear() {
+    return this.options.selectedYear === new Date().getFullYear();
+  }
   },
   methods: {
     ...mapActions({
@@ -118,8 +123,10 @@ export default {
     }),
     ...mapActions("CalculeConge",["fetchCongeData","updateSoldeAncienConge"]),
     editItem(item) {
+  if (this.isCurrentYear) {
     this.editedItem = item;
-  },
+  }
+},
   cancelEdit(item) {
     // Restore the original value
     Object.assign(item, this.originalItem);
