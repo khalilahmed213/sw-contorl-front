@@ -14,6 +14,25 @@
           class="mr-4"
           style="max-width: 200px;"
         ></v-select>
+        <v-menu>
+  <template v-slot:activator="{ props }">
+    <v-text-field
+      :model-value="options.selectedDate ? formatDateForDisplay(options.selectedDate) : ''"
+      label="Filtrer par date"
+      readonly
+      v-bind="props"
+      clearable
+      @click:clear="clearDate"
+      class="mr-4"
+      style="max-width: 200px;"
+    ></v-text-field>
+  </template>
+  <v-date-picker
+    v-model="selectedDate"
+    @update:model-value="fetch"
+    locale="fr-FR"
+  ></v-date-picker>
+</v-menu>
         <v-btn color="success" @click="exportToExcel">
             <v-icon left>mdi-file-excel</v-icon>
             Exporter Excel
@@ -83,8 +102,10 @@ export default {
         itemsPerPage: 10,
         sortBy: '',
         sortDesc:'',
+        selectedDate: null,
       },
       selectedAgent: null,
+      
     };
   },
   
@@ -94,6 +115,46 @@ export default {
   },
   
   methods: {
+    async toggleStatus(item, newStatus) {
+      await this.toggleCongeStatus({ id: item.id, newStatus });
+      await this.fetch(this.options)
+    },
+    
+    async fetch(newOptions) {
+    if (newOptions) {
+      this.options.itemsPerPage = newOptions.itemsPerPage;
+      this.options.page = newOptions.page;
+      this.options.sortBy = newOptions.sortBy;
+    }
+    const { page, itemsPerPage, sortBy } = this.options;
+    const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'reference';
+    const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'asc';
+    
+    // Send single date in fetch parameters
+    await this.fetchConges({
+      page,
+      limit: itemsPerPage,
+      sortBy: sortKey,
+      sortOrder,
+      UserId: this.selectedAgent,
+      date: this.options.selectedDate,
+    });
+  },
+    
+    formatDate(date) {
+      return new Date(date).toLocaleDateString('fr-FR');
+    },
+    
+    async exportToExcel() { // New method for exporting to Excel
+      const worksheet = XLSX.utils.json_to_sheet(this.conges.map(({ id, ...rest }) => rest)); // Exclude id
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Congés');
+      XLSX.writeFile(workbook, 'conges.xlsx');
+    },
+    clearDate() {
+    this.options.selectedDate = null;
+    this.fetch();
+  },
     ...mapActions('conge', ['fetchConges', 'toggleCongeStatus']),
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
@@ -109,42 +170,17 @@ await this.fetch(this.options)
         default: return "grey"; // Default color
       }
     },
-    
-    async toggleStatus(item, newStatus) {
-      await this.toggleCongeStatus({ id: item.id, newStatus });
-      await this.fetch(this.options)
-    },
-    
-    async fetch(newOptions) {
-      if (newOptions) {
-        this.options.itemsPerPage = newOptions.itemsPerPage;
-        this.options.page=newOptions.page
-        this.options.sortBy=newOptions.sortBy
-      }
-      const { page, itemsPerPage, sortBy } = this.options;
-      const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : 'reference';
-      const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : 'asc';
-      console.log( sortKey)
-      await this.fetchConges({
-        page,
-        limit: itemsPerPage,
-        sortBy: sortKey,
-        sortOrder,
-        UserId: this.selectedAgent,
-      });
-    },
-    
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('fr-FR');
-    },
-    
-    async exportToExcel() { // New method for exporting to Excel
-      const worksheet = XLSX.utils.json_to_sheet(this.conges.map(({ id, ...rest }) => rest)); // Exclude id
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Congés');
-      XLSX.writeFile(workbook, 'conges.xlsx');
-    },
+    formatDateForDisplay(date) {
+    return new Date(date).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   },
+  // Your other existing methods...
+},
+   
+
   async mounted(){
   },
   async created() {

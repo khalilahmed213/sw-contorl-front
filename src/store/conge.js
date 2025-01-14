@@ -45,11 +45,11 @@ const actions = {
       commit('SET_ERROR', error.message);
     }
   },
-  async fetchConges({ commit,state }, { page, limit, sortBy, sortOrder, UserId }) {
+  async fetchConges({ commit,state }, { page, limit, sortBy, sortOrder, UserId,date }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/conges', {
-        params: { page, limit, sortBy, sortOrder, UserId },
+        params: { page, limit, sortBy, sortOrder, UserId,date },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }

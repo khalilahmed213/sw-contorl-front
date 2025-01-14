@@ -17,7 +17,7 @@ const getters = {
 };
 
 const actions = {
-  async fetchPenalites({ commit }, { page, limit, sortBy, sortDesc, search, agentId }) {
+  async fetchPenalites({ commit }, { page, limit, sortBy, sortDesc, search, agentId, date }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/penalites', {
@@ -27,7 +27,8 @@ const actions = {
           sortBy,
           sortDesc: sortDesc ? 'true' : 'false',
           search,
-          agentId
+          agentId,
+          date
         },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`

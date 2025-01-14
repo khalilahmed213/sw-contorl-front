@@ -1,11 +1,11 @@
 <template>
   <v-container>
     <v-card>
-      <!-- Card Title and Top Row -->
       <v-card-title>
         <v-row align="center">
           <v-col cols="12" sm="6" md="4">
             <v-select
+              class="w-50"
               v-model="selectedAgent"
               :items="allAgents"
               item-title="name"
@@ -14,18 +14,44 @@
               clearable
               @update:modelValue="loadItems"
             ></v-select>
+            <v-menu v-model="dateMenu" :close-on-content-click="false">
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-model="displayDate"
+                  label="Filtrer par date"
+                  readonly
+                  v-bind="props"
+                  clearable
+                  @click:clear="clearDate"
+                  class="mr-4"
+                  style="max-width: 200px;"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="options.selectedDate"
+                @update:model-value="handleDateSelect"
+                locale="fr-FR"
+                :first-day-of-week="1"
+                :header-format="'dddd D MMMM YYYY'"
+                :title-format="'MMMM YYYY'"
+              ></v-date-picker>
+            </v-menu>
           </v-col>
           <v-spacer></v-spacer>
           <v-col cols="auto">
             <v-btn color="primary" @click="openAddDialog">Ajouter Pénalité</v-btn>
           </v-col>
           <v-col cols="auto">
-            <v-btn @click="exportToExcel" class="ml-auto" color="green"
-          >Export Excel</v-btn
-        >
+            <v-btn @click="exportToExcel" class="ml-auto" color="green">
+              Export Excel
+            </v-btn>
+            <v-btn @click="refresh" class="ml-auto" color="blue">
+              Actualiser
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-title>
+
       <v-card-content>
         <v-data-table-server
           :headers="headers"
@@ -52,15 +78,14 @@
           </template>
         </v-data-table-server>
       </v-card-content>
-      
     </v-card>
 
     <!-- Edit/Add Modal Dialog -->
     <v-dialog v-model="dialog" max-width="500px">
       <v-card>
-        <v-card-title>{{
-          isEditing ? "modifier pénalité" : "Ajouter pénalité"
-        }}</v-card-title>
+        <v-card-title>
+          {{ isEditing ? "Modifier pénalité" : "Ajouter pénalité" }}
+        </v-card-title>
         <v-card-text>
           <v-select
             v-model="editedItem.UserId"
@@ -70,23 +95,24 @@
             label="Agents"
           ></v-select>
           <v-date-input
-              v-model="editedItem.startDate"
-              label="Date début"
-              :rules="[v => !!v || 'La date est requise', validateDate]"
-              required
-              :min="getCurrentDate()"
-              locale="fr"
-              date-format="dd/MM/yyyy"
-            ></v-date-input>
-            <v-date-input
-              v-model="editedItem.endDate"
-              label="Date fin"
-              :rules="[v => !!v || 'La date est requise', validateDate]"
-              required
-              :min="getCurrentDate()"
-              locale="fr"
-              date-format="dd/MM/yyyy"
-            ></v-date-input>
+            v-model="editedItem.startDate"
+            label="Date début"
+            :rules="[v => !!v || 'La date est requise']"
+            required
+            :min="getCurrentDate()"
+            locale="fr"
+            date-format="dd/MM/yyyy"
+            @update:modelValue="updateEndDateMin"
+          ></v-date-input>
+          <v-date-input
+            v-model="editedItem.endDate"
+            label="Date fin"
+            :rules="[v => !!v || 'La date est requise', v => validateDates(editedItem.startDate, v) || 'La date de fin doit être après la date de début']"
+            required
+            :min="editedItem.startDate || getCurrentDate()"
+            locale="fr"
+            date-format="dd/MM/yyyy"
+          ></v-date-input>
           <v-text-field
             v-model="editedItem.raison"
             label="Raison"
@@ -94,9 +120,14 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="blue darken-1" text @click="closeDialog">Annuler</v-btn>
-          <v-btn color="blue darken-1" text @click="saveItem"  :disabled="!isFormValid">{{
-            isEditing ? "enregistrer" : "ajouter"
-          }}</v-btn>
+          <v-btn 
+            color="blue darken-1" 
+            text 
+            @click="saveItem" 
+            :disabled="!isFormValid"
+          >
+            {{ isEditing ? "Enregistrer" : "Ajouter" }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -109,10 +140,12 @@
           Êtes-vous sûr de vouloir supprimer cette pénalité ?
         </v-card-text>
         <v-card-actions>
-          <v-btn color="blue darken-1" text @click="cancelDelete"
-            >Annuler</v-btn
-          >
-          <v-btn color="red darken-1" text @click="deleteItem">Supprimer</v-btn>
+          <v-btn color="blue darken-1" text @click="cancelDelete">
+            Annuler
+          </v-btn>
+          <v-btn color="red darken-1" text @click="deleteItem">
+            Supprimer
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -122,18 +155,19 @@
       <v-card>
         <v-card-title>Détails de la pénalité</v-card-title>
         <v-card-text>
-          <div>Agent: {{ currentItem.agent}}</div>
+          <div>Agent: {{ currentItem.agent }}</div>
           <div>Date début: {{ formatDate(currentItem.startDate) }}</div>
           <div>Date fin: {{ formatDate(currentItem.endDate) }}</div>
           <div>Raison: {{ currentItem.raison }}</div>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="blue darken-1" text @click="viewDialog = false">Fermer</v-btn>
+          <v-btn color="blue darken-1" text @click="viewDialog = false">
+            Fermer
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <!-- Add this snackbar component at the end of the template -->
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -147,44 +181,49 @@
 <script>
 import moment from 'moment';
 import 'moment/locale/fr';
-moment.locale('fr')
 import { mapActions, mapGetters } from "vuex";
-import * as XLSX from 'xlsx'; 
+import * as XLSX from 'xlsx';
+
+moment.locale('fr');
 
 export default {
   data() {
     return {
       headers: [
-  { title: "Agent", key: "agent" },
-  { title: "Date début Pénalité", key: "startDate", value: item => this.formatDate(item.startDate) },
-  { title: "Date Fin Pénalité", key: "endDate", value: item => this.formatDate(item.endDate) },
-  { title: "nbrDeJour", key: "nbrDeJour" },
-  { title: "Raison", key: "raison" },
-  { title: "Actions", key: "actions", sortable: false },
-],
+        { title: "Agent", key: "agent" },
+        { title: "Date début Pénalité", key: "startDate" },
+        { title: "Date Fin Pénalité", key: "endDate" },
+        { title: "nbrDeJour", key: "nbrDeJour" },
+        { title: "Raison", key: "raison" },
+        { title: "Actions", key: "actions", sortable: false },
+      ],
       dialog: false,
       deleteDialog: false,
       isEditing: false,
       editedIndex: -1,
       editedItem: {
-        startDate:null,
-        endDate:null,
+        startDate: null,
+        endDate: null,
         raison: "",
         UserId: null,
       },
       options: {
-        page: 1,  
+        page: 1,
         sortBy: [],
         sortDesc: [],
         groupBy: [],
         groupDesc: [],
         multiSort: false,
         mustSort: false,
+        selectedDate: null
       },
+      dateMenu: false,
+      displayDate: '',
       viewDialog: false,
       currentItem: null,
       search: "",
       selectedAgent: null,
+      itemToDelete: null,
       snackbar: {
         show: false,
         text: '',
@@ -192,6 +231,7 @@ export default {
       },
     };
   },
+
   computed: {
     ...mapGetters(["allPenalites", "selectedschedule", "getSchedules", "isLoadingPenalite", "totalPenalites"]),
     ...mapGetters("agent", ["allAgents", "loading"]),
@@ -200,10 +240,18 @@ export default {
         this.editedItem.startDate &&
         this.editedItem.endDate &&
         this.editedItem.raison &&
-        this.editedItem.UserId !== null 
+        this.editedItem.UserId !== null &&
+        this.validateDates(this.editedItem.startDate, this.editedItem.endDate)
       );
     }
   },
+
+  watch: {
+    'options.selectedDate'(newDate) {
+      this.displayDate = newDate ? this.formatDateForDisplay(newDate) : '';
+    }
+  },
+
   methods: {
     ...mapActions([
       "fetchPenalites",
@@ -211,21 +259,56 @@ export default {
       "updatePenalite",
       "deletePenalite",
     ]),
+    refresh(){
+      this.loadItems(this.options)
+    },
     ...mapActions(["fetchSchedules", "toggleSelected"]),
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
+
+    validateDates(startDate, endDate) {
+      return new Date(startDate) < new Date(endDate);
+    },
+
+    updateEndDateMin(startDate) {
+      if (startDate && this.editedItem.endDate && new Date(this.editedItem.endDate) < new Date(startDate)) {
+        this.editedItem.endDate = startDate; // Reset endDate if it's before the new startDate
+      }
+    },
+
+    handleDateSelect(date) {
+      this.dateMenu = false;
+      this.loadItems();
+    },
+
+    clearDate() {
+      this.options.selectedDate = null;
+      this.displayDate = '';
+      this.loadItems();
+    },
+
     getCurrentDate() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-},
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+
+    formatDateForDisplay(date) {
+      if (!date) return '';
+      return moment(date).format('DD/MM/YYYY');
+    },
+
+    formatDate(date) {
+      return moment(date).format('DD/MM/YYYY');
+    },
+
     openAddDialog() {
       this.isEditing = false;
       this.editedItem = {
-        startDate:null,
+        startDate: null,
         endDate: null,
         raison: "",
         UserId: null,
@@ -233,6 +316,7 @@ export default {
       };
       this.dialog = true;
     },
+
     editItem(item) {
       this.isEditing = true;
       this.editedItem = {
@@ -243,31 +327,29 @@ export default {
         UserId: item.UserId,
         ScheduleId: item.ScheduleId,
       };
-      // Force Vue to re-render the select component
       this.$nextTick(() => {
         this.editedItem = { ...this.editedItem };
       });
       this.dialog = true;
     },
-    async saveItem() {
-  const startDate = Date.parse(this.editedItem.startDate);
-  const endDate = Date.parse(this.editedItem.endDate);
-  
-  if (!isNaN(startDate) && !isNaN(endDate) && startDate > endDate) {
-    alert("Respecter l'ordre des dates : La date de début ne peut pas être postérieure à la date de fin.");
-    return;
-  }
 
-  if (this.isEditing) {
-    await this.updatePenalite(this.editedItem);
-    this.showSnackbar('Pénalité mise à jour avec succès');
-  } else {
-    await this.createPenalite(this.editedItem);
-    this.showSnackbar('Pénalité ajoutée avec succès');
-  }
-  await this.fetchPenalites(this.options);
-  this.closeDialog();
-},
+    async saveItem() {
+      if (!this.validateDates(this.editedItem.startDate, this.editedItem.endDate)) {
+        this.showSnackbar("La date de fin doit être après la date de début", 'error');
+        return;
+      }
+
+      if (this.isEditing) {
+        await this.updatePenalite(this.editedItem);
+        this.showSnackbar('Pénalité mise à jour avec succès');
+      } else {
+        await this.createPenalite(this.editedItem);
+        this.showSnackbar('Pénalité ajoutée avec succès');
+      }
+      await this.fetchPenalites(this.options);
+      this.closeDialog();
+    },
+
     closeDialog() {
       this.dialog = false;
       this.editedItem = {
@@ -280,14 +362,17 @@ export default {
       };
       this.editedIndex = -1;
     },
+
     confirmDelete(id) {
       this.itemToDelete = id;
       this.deleteDialog = true;
     },
+
     cancelDelete() {
       this.deleteDialog = false;
       this.itemToDelete = null;
     },
+
     async deleteItem() {
       if (this.itemToDelete) {
         await this.deletePenalite(this.itemToDelete);
@@ -297,14 +382,12 @@ export default {
       this.deleteDialog = false;
       this.itemToDelete = null;
     },
-    formatDate(date) {
-      return moment(date).locale('fr').format('DD/MM/YYYY');
-    },
+
     viewItem(item) {
       this.currentItem = item;
       this.viewDialog = true;
-      
     },
+
     async loadItems(newOptions) {
       if (newOptions) {
         this.options = newOptions;
@@ -320,12 +403,16 @@ export default {
         sortDesc: sortOrder === "desc",
         search: this.search,
         agentId: this.selectedAgent,
+        date: this.options.selectedDate
       });
     },
-    showSnackbar(text) {
+
+    showSnackbar(text, color = 'success') {
       this.snackbar.text = text;
+      this.snackbar.color = color;
       this.snackbar.show = true;
     },
+
     exportToExcel() {
       const headers = this.headers.map(header => header.title);
       const data = this.allPenalites.map(item => [
@@ -340,37 +427,15 @@ export default {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Pénalités");
       
-      // Generate file name with current date
       const fileName = `penalites_${moment().format('YYYY-MM-DD')}.xlsx`;
-
-      // Trigger file download
       XLSX.writeFile(workbook, fileName);
-
       this.showSnackbar('Exportation Excel réussie');
     },
   },
+
   async created() {
-    await this.fetchAllAgents(); // Adjust these values as needed
-    await this.fetchSchedules(); // Initial load of items
+    await this.fetchAllAgents();
+    await this.fetchSchedules();
   },
-  mounted(){
-  },
- 
 };
 </script>
-
-<style scoped>
-.punishment-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.punishment-table th,
-.punishment-table td {
-  padding: 8px;
-  border: 1px solid #ccc;
-  text-align: left;
-}
-.punishment-table th {
-  background-color: #f5f5f5;
-}
-</style>
