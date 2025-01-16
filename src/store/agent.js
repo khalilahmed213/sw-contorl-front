@@ -46,7 +46,7 @@ export default {
       commit('SET_ERROR', null);
       
       try {
-        const response = await axios.get(`http://localhost:3000/api/agents`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/agents`, {
           params: {
             page,
             limit,
@@ -76,7 +76,7 @@ export default {
             soldeAncienConge: agent.soldeAncienConge
           }
         };
-        await axios.post('http://localhost:3000/api/agents', payload, {
+        await axios.post(`${process.env.VUE_APP_API_URL}api/agents`, payload, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
@@ -96,7 +96,7 @@ export default {
             soldeAncienConge: agent.soldeAncienConge
           }
         };
-        await axios.put(`http://localhost:3000/api/agents/${agent.id}`, payload, {
+        await axios.put(`${process.env.VUE_APP_API_URL}api/agents/${agent.id}`, payload, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
@@ -108,7 +108,7 @@ export default {
     },
     async deleteAgent({ dispatch }, id) {
       try {
-        await axios.delete(`http://localhost:3000/api/agents/${id}`, {
+        await axios.delete(`${process.env.VUE_APP_API_URL}api/agents/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
@@ -124,7 +124,7 @@ export default {
       commit('SET_ERROR', null);
       
       try {
-        const response = await axios.get(`http://localhost:3000/api/agents/allagents`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/agents/allagents`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
@@ -139,7 +139,7 @@ export default {
     async resetPassword({ commit }, email) {
       commit('SET_LOADING', true); // Set loading to true at the start
       try {
-        await axios.post('http://localhost:3000/api/reset-password', { email }, {
+        await axios.post(`${process.env.VUE_APP_API_URL}api/reset-password`, { email }, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
@@ -153,7 +153,7 @@ export default {
     },
     async fetchAgentInfo({ commit}, userId) {
       try {
-        const response = await axios.get('http://localhost:3000/api/agents/userinfo', {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/agents/userinfo`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },

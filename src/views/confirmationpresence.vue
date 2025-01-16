@@ -141,6 +141,7 @@ export default {
       errorConfirmingStep: 'Erreur lors de la confirmation de l\'étape : ',
       stepMarkedSuccessfully: 'Étape ${step} marquée comme ${status} avec succès.',
     },
+    apiurl:process.env.VUE_APP_API_URL,
     stepTranslations: {
       morningEntryStatus: 'Entrée matin',
       morningExitStatus: 'Sortie matin',
@@ -249,7 +250,7 @@ export default {
     }).filter(record => record !== null); // Remove null records
 
     // Send the update request
-    await axios.post('http://localhost:3000/api/presence/update-all-statuses', recordsToUpdate, {
+    await axios.post(`${this.apiurl}api/presence/update-all-statuses`, recordsToUpdate, {
       headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` }
     });
 
@@ -404,7 +405,7 @@ export default {
     async loadbool() {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/schedules/getisramadan",
+          `${apiurl}api/schedules/getisramadan`,
           {
             params: { date: new Date() },
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },

@@ -18,7 +18,7 @@ const actions = {
   async fetchAbsences({ commit }, { userId, month, page, limit, sortBy, order ,year}) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get('http://localhost:3000/api/absence', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/absence`, {
         params: { userId, month, page, limit, sortBy, order,year },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
@@ -35,7 +35,7 @@ const actions = {
   },
   async addAbsence({ commit }, absence) {
     try {
-    await axios.post('http://localhost:3000/api/absence', absence, {
+    await axios.post(`${process.env.VUE_APP_API_URL}api/absence`, absence, {
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
         },

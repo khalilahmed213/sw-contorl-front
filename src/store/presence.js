@@ -32,7 +32,7 @@ const getters = {
 const actions = {
   async fetchPresenceAndAbsence({ commit }, { dateselect }) {
     try {
-      const response = await axios.get('http://localhost:3000/api/presence/fetch', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/presence/fetch`, {
         params: { dateselect},
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
@@ -45,7 +45,7 @@ const actions = {
 
   async updatePresence({ dispatch }, presenceData) {
     try {
-      await axios.put('http://localhost:3000/api/presence/addtimes', presenceData, {
+      await axios.put(`${process.env.VUE_APP_API_URL}api/presence/addtimes`, presenceData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
     } catch (error) {
@@ -56,7 +56,7 @@ const actions = {
 
   async addPointage({ commit }, { env, date, status, UserId }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/addpointage', null, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/presence/addpointage`, null, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         params: { env, date, status, UserId }
       });
@@ -72,7 +72,7 @@ const actions = {
         params.agentId = payload.agentId;
       }
       
-      const response = await axios.get('http://localhost:3000/api/presence/getPresences', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/presence/getPresences`, {
         params: params,
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
@@ -85,7 +85,7 @@ const actions = {
 
   async togglePresenceStatus({ commit, dispatch }, { id, action, UserId, raison }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/toggle-presence', { id, action, UserId, raison }, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/presence/toggle-presence`, { id, action, UserId, raison }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       return response.data;
@@ -101,7 +101,7 @@ const actions = {
   async fetchPresence({ commit }, presenceId) {
     commit('SET_PRESENCE_LOADING', true);
     try {
-      const response = await axios.get(`http://localhost:3000/api/presence/${presenceId}`, {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/presence/${presenceId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       commit('SET_PRESENCE', response.data);
@@ -114,7 +114,7 @@ const actions = {
 
   async checkButtonStatus({ commit }, { buttonNumber, UserId }) {
     try {
-      const response = await axios.get('http://localhost:3000/api/presence/checkButtonStatus', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/presence/checkButtonStatus`, {
         params: { buttonNumber, UserId },
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
@@ -127,7 +127,7 @@ const actions = {
 
   async confirmTallying({ commit, dispatch }, { presenceId, tallyingPoint, status }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/confirmTallying', { presenceId, tallyingPoint, status }, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/presence/confirmTallying`, { presenceId, tallyingPoint, status }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       
@@ -142,7 +142,7 @@ const actions = {
 
   async updateOverallStatus({ commit, dispatch }, { presenceId, status }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/update-all-statuses', { presenceId, status }, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/presence/update-all-statuses`, { presenceId, status }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       return response.data;
@@ -157,7 +157,7 @@ const actions = {
 
   async togglePresenceStatus({ commit, dispatch }, { id, status, UserId }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/toggle-presence-status', { id, status, UserId }, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/presence/toggle-presence-status`, { id, status, UserId }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       return response.data;
@@ -172,7 +172,7 @@ const actions = {
 
   async updatePresenceField({ commit, dispatch }, { id, field, status }) {
     try {
-      const response = await axios.post('http://localhost:3000/api/presence/update-presence-field', { id, field, status }, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/presence/update-presence-field`, { id, field, status }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       return response.data;
@@ -187,7 +187,7 @@ const actions = {
   async updateAllStatuses({ commit }, records) {
     try {
       console.log(records)
-      await axios.post('http://localhost:3000/api/presence/update-all-statuses', records, {
+      await axios.post(`${process.env.VUE_APP_API_URL}api/presence/update-all-statuses`, records, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       

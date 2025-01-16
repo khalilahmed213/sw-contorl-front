@@ -18,7 +18,7 @@ const actions = {
   async fetchRetard({ commit }, { userId, month, page, limit, sortBy, order ,year}) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get('http://localhost:3000/api/retard', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/retard`, {
         params: { userId, month, page, limit, sortBy, order,year },
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,

@@ -231,7 +231,7 @@ getCurrentDate() {
       this.dialog = true;
     },
     async editItem(item) {
-      const response = await axios.get('http://localhost:3000/api/conges/status', {
+      const response = await axios.get(`${this.apiurl}api/conges/status`, {
       params: { id:item.id },
       headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -254,7 +254,7 @@ getCurrentDate() {
     },
     async deleteItem(item) {
   try {
-    const response = await axios.get('http://localhost:3000/api/conges/status', {
+    const response = await axios.get(`${this.apiurl}api/conges/status`, {
       params: { id: item.id },
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -370,7 +370,7 @@ async saveItem() {
     try {
       if (this.editedItem.id) {
         // Update existing conge
-        await axios.put(`http://localhost:3000/api/conges/${this.editedItem.id}`, this.editedItem, {
+        await axios.put(`${this.apiurl}api/conges/${this.editedItem.id}`, this.editedItem, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`
           }
@@ -378,7 +378,7 @@ async saveItem() {
         this.showSnackbar('Congé mis à jour avec succès', 'success');
       } else {
         // Create new conge
-        await axios.post('http://localhost:3000/api/conges', this.editedItem, {
+        await axios.post(`${this.apiurl}api/conges`, this.editedItem, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`
           }

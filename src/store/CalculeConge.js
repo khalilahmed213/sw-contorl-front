@@ -20,7 +20,7 @@ const actions = {
   async fetchCongeData({ commit }, { userId, month, page, limit, sortBy, order,year  }) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get('http://localhost:3000/api/congecalcule', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/congecalcule`, {
         params: { userId, page, limit, sortBy, order,year},
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -38,7 +38,7 @@ const actions = {
   async fetchCongeDataUser({ commit }, { userId }) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get('http://localhost:3000/api/calculep', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/calculep`, {
         params: { userId },
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -55,7 +55,7 @@ const actions = {
   async updateSoldeAncienConge({ commit }, payload) {
     try {
       const response = await axios.put(
-        'http://localhost:3000/api/update-solde-ancien-conge', 
+        `${process.env.VUE_APP_API_URL}api/update-solde-ancien-conge`, 
         payload, 
         {
           headers: {

@@ -43,7 +43,7 @@ const actions = {
   },
   logout({ commit, state }) {
     console.log(localStorage.getItem('accessToken'))
-    const response = axios.post('http://localhost:3000/api/auth/logout', {},{
+    const response = axios.post(`${process.env.VUE_APP_API_URL}api/auth/logout`, {},{
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       }}); 
@@ -77,7 +77,7 @@ const actions = {
     async resetPasswordProfile({ commit }, { id, password }) {
       console.log(password)
       try {
-        const response = await axios.put('http://localhost:3000/api/auth/resetpasswordprofile', { id, password },
+        const response = await axios.put(`${process.env.VUE_APP_API_URL}api/auth/resetpasswordprofile`, { id, password },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`,

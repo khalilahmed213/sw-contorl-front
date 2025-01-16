@@ -20,7 +20,7 @@ const actions = {
   async fetchPenalites({ commit }, { page, limit, sortBy, sortDesc, search, agentId, date }) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get('http://localhost:3000/api/penalites', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/penalites`, {
         params: {
           page,
           limit,
@@ -45,7 +45,7 @@ const actions = {
 
   async createPenalite({ commit }, penaliteData) {
     try {
-      const response = await axios.post('http://localhost:3000/api/penalites', penaliteData, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/penalites`, penaliteData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -57,7 +57,7 @@ const actions = {
 
   async updatePenalite({ commit }, updatedPenalite) {
     try {
-      const response = await axios.put(`http://localhost:3000/api/penalites/${updatedPenalite.id}`, updatedPenalite, {
+      const response = await axios.put(`${process.env.VUE_APP_API_URL}api/penalites/${updatedPenalite.id}`, updatedPenalite, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -70,7 +70,7 @@ const actions = {
 
   async deletePenalite({ commit }, id) {
     try {
-      await axios.delete(`http://localhost:3000/api/penalites/${id}`, {
+      await axios.delete(`${process.env.VUE_APP_API_URL}api/penalites/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },

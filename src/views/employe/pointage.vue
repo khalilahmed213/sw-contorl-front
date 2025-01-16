@@ -158,7 +158,6 @@
 import moment from "moment";
 import { mapActions, mapGetters } from "vuex";
 import axios from "axios";
-
 export default {
   data() {
     return {
@@ -179,6 +178,7 @@ export default {
         afternoonEntry: false,
         afternoonExit: false,
       },
+      apiurl:process.env.VUE_APP_API_URL,
       bool: null,
     };
   },
@@ -217,7 +217,7 @@ export default {
     async fetchButtonStatus() {
       if (this.presenceId && this.currentButton) {
         const response = await axios.get(
-          "http://localhost:3000/api/presence/checkButtonStatus",
+          `${this.apiurl}api/presence/checkButtonStatus`,
           {
             params: { presenceId: this.presenceId, buttonNumber: this.currentButton },
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
@@ -247,7 +247,7 @@ export default {
     async fetchCongeToday() {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/presence/conge/today",
+          `${this.apiurl}api/presence/conge/today`,
           {
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
             params: { UserId: this.currentUserId },
@@ -261,7 +261,7 @@ export default {
     async fetchPenaliteToday() {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/presenece/penalite/today",
+          `${this.apiurl}api/presence/penalite/today`,
           {
             params: { UserId: this.currentUserId },
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
@@ -277,7 +277,7 @@ export default {
     async handleRefreshClick() {
       if (this.presenceId && this.currentButton) {
         const response = await axios.get(
-          "http://localhost:3000/api/presence/checkButtonStatus",
+          `${this.apiurl}api/presence/checkButtonStatus`,
           {
             params: { presenceId: this.presenceId, buttonNumber: this.currentButton },
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
@@ -307,7 +307,7 @@ export default {
     async fetchCurrentPresenceStatus() {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/presence/current-status",
+          `${this.apiurl}api/presence/current-status`,
           {
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
           }
@@ -367,7 +367,7 @@ export default {
     },
     async loadbool() {
       const response = await axios.get(
-        "http://localhost:3000/api/schedules/getisramadan",
+        `${this.apiurl}api/schedules/getisramadan`,
         {
           params: { date: new Date() },
           headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
@@ -439,7 +439,7 @@ export default {
   beforeDestroy() {
     clearInterval(this.networkTimeInterval);
   },
-  created() {
+ async created() {
     this.startNetworkTimeInterval();
     this.fetchCongeToday();
     this.fetchPenaliteToday();

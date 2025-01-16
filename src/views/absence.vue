@@ -282,7 +282,6 @@ await this.fetch(this.options)
     await this.fetchAllAgents();
   },
   mounted() {
-    console.log(this.absences);
   },
 };
 </script>

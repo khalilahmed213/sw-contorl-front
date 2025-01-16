@@ -32,7 +32,7 @@ const actions = {
   async fetchAutorisations({ commit }, { page, limit, sortBy, sortOrder, agentId,date }) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get('http://localhost:3000/api/autorisations', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/autorisations`, {
         params: { page, limit, sortBy, sortOrder, agentId,date},
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -52,7 +52,7 @@ const actions = {
   async updateAutorisation({ commit}, { id, autorisationData }) {
     commit('SET_LOADING', true);
     try {
-      await axios.put(`http://localhost:3000/api/autorisations/${id}`, autorisationData, {
+      await axios.put(`${process.env.VUE_APP_API_URL}api/autorisations/${id}`, autorisationData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -67,7 +67,7 @@ const actions = {
   async deleteAutorisation({ commit}, id) {
     commit('SET_LOADING', true);
     try {
-      await axios.delete(`http://localhost:3000/api/autorisations/${id}`, {
+      await axios.delete(`${process.env.VUE_APP_API_URL}api/autorisations/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -82,7 +82,7 @@ const actions = {
   async fetchUserAutorisations({ commit }, { UserId, page, limit, sortBy, sortOrder }) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.get(`http://localhost:3000/api/autorisation`, {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/autorisation`, {
         params: { page, limit, sortBy, sortOrder ,UserId},
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -100,7 +100,7 @@ const actions = {
   async toggleAutorisationStatus({ commit }, { id, newStatus }) {
     commit('SET_LOADING', true);
     try {
-      const response = await axios.put(`http://localhost:3000/api/autorisation/${id}`, 
+      const response = await axios.put(`${process.env.VUE_APP_API_URL}api/autorisation/${id}`, 
         { newStatus },
         {
           headers: {
@@ -120,7 +120,7 @@ const actions = {
     commit('SET_LOADING', true);
     console.log(this.autorisationData)
     try {
-      await axios.post(`http://localhost:3000/api/autorisations`, autorisationData, {
+      await axios.post(`${process.env.VUE_APP_API_URL}api/autorisations`, autorisationData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }

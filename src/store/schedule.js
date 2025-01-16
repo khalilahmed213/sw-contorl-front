@@ -54,7 +54,7 @@ const mutations = {
 const actions = {
   async fetchSchedules({ commit }) {
     try {
-      const response = await axios.get('http://localhost:3000/api/schedules', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/schedules`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -68,7 +68,7 @@ const actions = {
   async createSchedule({ commit }, schedule) {
     commit('setLoading', true); 
     try {
-      const response = await axios.post('http://localhost:3000/api/schedules', schedule, {
+      const response = await axios.post(`${process.env.VUE_APP_API_URL}api/schedules`, schedule, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -84,7 +84,7 @@ const actions = {
   async updateSchedule({ commit }, schedule) {
     commit('setLoading', true);
     try {
-      const response = await axios.put(`http://localhost:3000/api/schedules/${schedule.id}`, schedule, {
+      const response = await axios.put(`${process.env.VUE_APP_API_URL}api/schedules/${schedule.id}`, schedule, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -100,7 +100,7 @@ const actions = {
   async deleteSchedule({ commit }, id) {
     commit('setLoading', true); 
     try {
-    const response =await axios.delete(`http://localhost:3000/api/schedules/${id}`, {
+    const response =await axios.delete(`${process.env.VUE_APP_API_URL}api/schedules/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -114,7 +114,7 @@ const actions = {
   },
   async toggleSelected({ commit }, ScheduleId) {
     try {
-      await axios.put(`http://localhost:3000/api/schedules/toggle-selected/${ScheduleId}`,{}, {
+      await axios.put(`${process.env.VUE_APP_API_URL}api/schedules/toggle-selected/${ScheduleId}`,{}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -128,7 +128,7 @@ const actions = {
   },
   async checkIfScheduleIsRecurring({ commit },date) {
     try {
-      const response = await axios.get(`http://localhost:3000/api/schedules/getisramadan`, {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/schedules/getisramadan`, {
         params: { date },
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -141,7 +141,7 @@ const actions = {
   },
   async fetchSelectedSchedule({ commit }) {
     try {
-      const response = await axios.get('http://localhost:3000/api/schedules/getisselectedschedule', {
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}api/schedules/getisselectedschedule`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }

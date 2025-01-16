@@ -29,7 +29,7 @@ export default {
       commit('SET_LOADING', true);
       commit('SET_ERROR', null);
       try {
-        const response = await axios.get('http://localhost:3000/api/projects', {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/projects`, {
           params: {
             page,
             limit,
@@ -52,7 +52,7 @@ export default {
     async addProject({ commit }, projectData) {
       commit('SET_LOADING', true);
       try {
-        const response = await axios.post('http://localhost:3000/api/projects', projectData, {
+        const response = await axios.post(`${process.env.VUE_APP_API_URL}api/projects`, projectData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
@@ -66,7 +66,7 @@ export default {
     async updateProject({ commit }, projectData) {
       commit('SET_LOADING', true);
       try {
-        const response = await axios.put(`http://localhost:3000/api/projects/${projectData.id}`, projectData, {
+        const response = await axios.put(`${process.env.VUE_APP_API_URL}api/projects/${projectData.id}`, projectData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
@@ -82,7 +82,7 @@ export default {
         commit('SET_LOADING', true);
         try {
           console.log(`Attempting to delete project with ID: ${projectId}`);
-          const response = await axios.delete(`http://localhost:3000/api/projects/${projectId}`, {
+          const response = await axios.delete(`${process.env.VUE_APP_API_URL}api/projects/${projectId}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }

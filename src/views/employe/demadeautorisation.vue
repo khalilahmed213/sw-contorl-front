@@ -162,6 +162,7 @@ export default {
         heureFin: '',
         UserId: '',
       },
+      apiurl:process.env.VUE_APP_API_URL,
       defaultItem: {
         date: null,
         heureDebut: '',
@@ -247,15 +248,6 @@ export default {
     sortKey = 'date';
     sortOrder = 'asc';
   }
-
-  console.log('Fetching autorisations with:', {
-    UserId: this.currentUserId,
-    page,
-    limit: itemsPerPage,
-    sortBy: sortKey,
-    sortOrder,
-  });
-
   await this.fetchUserAutorisations({
     UserId: this.currentUserId,
     page,
@@ -276,7 +268,7 @@ openAddDialog() {
   },
 
   async editItem(item) {
-      const response = await axios.get('http://localhost:3000/api/autorisation/status', {
+      const response = await axios.get(`${this.apiurl}api/autorisation/status`, {
       params: { id:item.id },
       headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -293,7 +285,7 @@ openAddDialog() {
 
     async deleteItem(item) {
   try {
-    const response = await axios.get('http://localhost:3000/api/autorisation/status', {
+    const response = await axios.get(`${this.apiurl}api/autorisation/status`, {
       params: { id: item.id },
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -408,7 +400,7 @@ openAddDialog() {
           if (this.editedItem.id) {
             // Update existing autorisation
             const response = await axios.put(
-              `http://localhost:3000/api/autorisations/${this.editedItem.id}`,
+              `${this.apiurl}api/autorisations/${this.editedItem.id}`,
               {
                 date: this.editedItem.date,
                 heureDebut: this.editedItem.heureDebut,
