@@ -10,6 +10,7 @@
           item-value="id"
           label="Filtrer par agent"
           density="compact"
+          variant="outlined"
           style="width: 200px"
           @update:model-value="fetch"
         ></v-select>

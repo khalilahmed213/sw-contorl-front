@@ -11,7 +11,20 @@
           class="mx-4"
           item-value="value"
           style="max-width: 200px"
+           density="compact"
+          variant="outlined"
         ></v-select>
+        <v-select
+    v-model="options.selectedYear"
+    :items="years"
+    label="Filtrer par année"
+    clearable
+    @update:modelValue="fetch"
+    class="mr-2"
+    style="max-width: 150px"
+     density="compact"
+          variant="outlined"
+  ></v-select>
         <v-select
           v-model="options.selectedAgent"
           :items="allAgents"
@@ -22,6 +35,8 @@
           @update:modelValue="fetch"
           class="mr-2"
           style="max-width: 200px"
+           density="compact"
+          variant="outlined"
         ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green"
           >Export Excel</v-btn
@@ -98,7 +113,14 @@ export default {
         sortDesc: [true],
         selectedAgent: "",
         selectedMonth: "",
+        selectedYear:""
       },
+      years: [
+        { title: "2024", value: 2024 },
+        { title: "2025", value: 2025 },
+        { title: "2026", value: 2026 },
+        { title: "2027", value: 2027 },
+      ],
     };
   },
   computed: {
@@ -109,7 +131,6 @@ export default {
   methods: {
     ...mapActions('schedule',['checkIfScheduleIsRecurring']),
     getRetardColor(retard) {
-      // Parse the totalTardiness string
       const matches = retard.match(/(\d+)h\s*(\d+)m/);
       let totalMinutes = 0;
 
@@ -167,6 +188,7 @@ await this.fetch(this.options)
         order:sortOrder,
         userId: this.options.selectedAgent,
         month: this.options.selectedMonth,
+        year:this.options.selectedYear
       });
     },
 

@@ -12,6 +12,8 @@
           @update:modelValue="fetch"
           class="mr-2"
           style="max-width: 200px"
+           density="compact"
+          variant="outlined"
         ></v-select>
         <v-select
     v-model="options.selectedYear"
@@ -21,6 +23,8 @@
     @update:modelValue="fetch"
     class="mr-2"
     style="max-width: 150px"
+     density="compact"
+          variant="outlined"
   ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green"
           >Export Excel</v-btn
@@ -106,7 +110,7 @@ export default {
         
       },
       editedItem: null,
-      selectedYear: new Date().getFullYear(),
+      
     };
   },
   computed: {

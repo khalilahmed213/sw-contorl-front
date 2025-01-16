@@ -55,6 +55,7 @@
   locale="fr"
   date-format="dd/MM/yyyy"
   @change="changeDateStart"
+  :allowed-dates="allowedDates" 
 ></v-date-input>
 
 <v-date-input
@@ -66,6 +67,7 @@
   locale="fr"
   date-format="dd/MM/yyyy"
   @change="changeDateFin"
+  :allowed-dates="allowedDates" 
 ></v-date-input>
             <v-text-field v-model="editedItem.raison" label="Raison" type="text" required></v-text-field>
             <v-alert v-if="formError" type="error" class="mt-3">{{ formError }}</v-alert>
@@ -177,6 +179,11 @@ export default {
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
+    allowedDates(date) {
+  const day = new Date(date).getDay();
+  // Returns false for Saturday (6) and Sunday (0)
+  return day !== 0 && day !== 6;
+},
     ...mapActions('schedule', ['fetchSelectedSchedule']),
     ...mapActions('calcule', ['fetchCongepData']),
     datesOverlap(congeStartDate, congeEndDate, penaliteStartDate, penaliteEndDate) {
@@ -227,7 +234,11 @@ getCurrentDate() {
         this.showSnackbar('ce congé a été confirmer veillez actualiser', 'success');
         return;
       } else{
-      this.editedItem = { ...item };
+        this.editedItem = {
+      ...item, // Copy all properties from item
+      startDate: new Date(item.startDate), // Format startDate
+      endDate:new Date(item.endDate),     // Format endDate
+    };
       this.dialog = true;
     }
     },

@@ -55,14 +55,16 @@
         <v-card-text>
           <v-form ref="form" v-model="valid" @submit.prevent="saveItem">
             <v-date-input
-              v-model="editedItem.date"
-              label="Date"
-              :rules="[v => !!v || 'La date est requise', validateDate]"
-              required
-              :min="getCurrentDate()"
-              locale="fr"
-              date-format="dd/MM/yyyy"
-            ></v-date-input>
+  v-model="editedItem.date"
+  label="Date"
+  :rules="dateRules"  
+  required
+  :min="getCurrentDate()"
+  locale="fr"
+  date-format="dd/MM/yyyy"
+  @update:modelValue="handleDateChange" 
+   :allowed-dates="allowedDates"
+></v-date-input>
             <v-text-field
               v-model="editedItem.heureDebut"
               label="Heure de Début"
@@ -131,6 +133,10 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      dateRules: [
+      v => !!v || 'La date est requise',
+      v => this.validateDate(v)
+    ],
       dialog: false,
       dialogDelete: false,
       valid: false,
@@ -186,6 +192,31 @@ export default {
     },
   },
   methods: {
+    allowedDates(date) {
+  const day = new Date(date).getDay();
+  // Returns false for Saturday (6) and Sunday (0)
+  return day !== 0 && day !== 6;
+},
+    handleDateChange(newValue) {
+    // Clear form error when date changes
+    this.formError = null;
+    // Trigger validation
+    this.$refs.form?.validate();
+  },
+  validateDate(value) {
+    if (!value) return 'La date est requise';
+    
+    // Create date object
+    const selectedDate = new Date(value);
+    const today = new Date();
+    
+    // Set time to midnight for comparison
+    selectedDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // Compare dates
+    return selectedDate >= today || 'La date doit être aujourd\'hui ou dans le futur';
+  },
     ...mapActions('autorisation', ['fetchUserAutorisations', 'createAutorisation', 'updateAutorisation', 'deleteAutorisation']),
     ...mapActions('schedule', ['fetchSelectedSchedule','fetchSelectedSchedule']),
     formatDate(date) {
@@ -233,7 +264,6 @@ await this.fetchAutorisations(this.options)
 openAddDialog() {
     this.editedItem = {
       ...this.defaultItem,
-      date: this.editedItem.date ? new Date(this.editedItem.date) : null, // Convert to Date object
       UserId: this.currentUserId,
     };
     this.dialog = true;
@@ -250,7 +280,7 @@ openAddDialog() {
         this.showSnackbar('le statut de cette autorisation a été modifié veillez actualiser', 'success');
         return;
       } else{
-      this.editedItem = { ...item };
+      this.editedItem = { ...item ,date:new Date(item.date)};
       this.dialog = true;
     }
     },
@@ -295,10 +325,8 @@ openAddDialog() {
     validateDate(value) {
     if (!value) return 'La date est requise';
     const selectedDate = new Date(value);
-    if (isNaN(selectedDate.getTime())) return 'Date invalide';
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return selectedDate >= today || 'La date doit être aujourd\'hui ou dans le futur';
+    today.setHours(0, 0, 0, 0)
   },
 
     validateStartTime(value) {

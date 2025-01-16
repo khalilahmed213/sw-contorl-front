@@ -29,11 +29,11 @@ const mutations = {
 };
 
 const actions = {
-  async fetchAutorisations({ commit }, { page, limit, sortBy, sortOrder, agentId }) {
+  async fetchAutorisations({ commit }, { page, limit, sortBy, sortOrder, agentId,date }) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/autorisations', {
-        params: { page, limit, sortBy, sortOrder, agentId },
+        params: { page, limit, sortBy, sortOrder, agentId,date},
         headers: {
           Authorization: `Bearer ${getAccessToken()}`
         }

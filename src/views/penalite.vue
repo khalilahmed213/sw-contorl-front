@@ -1,57 +1,66 @@
 <template>
   <v-container>
     <v-card>
-      <v-card-title>
-        <v-row align="center">
-          <v-col cols="12" sm="6" md="4">
-            <v-select
-              class="w-50"
-              v-model="selectedAgent"
-              :items="allAgents"
-              item-title="name"
-              item-value="id"
-              label="Filtrer par agent"
+      <!-- Filters and Actions -->
+      <v-card-title class="d-flex align-center">
+        <!-- Agent Filter -->
+        <v-select
+          v-model="selectedAgent"
+          :items="allAgents"
+          item-title="name"
+          item-value="id"
+          label="Filtrer par agent"
+          clearable
+          @update:modelValue="loadItems"
+          class="mr-4"
+          style="max-width: 200px;"
+          density="compact"
+          variant="outlined"
+        ></v-select>
+
+        <!-- Date Filter -->
+        <v-menu v-model="dateMenu" :close-on-content-click="false">
+          <template v-slot:activator="{ props }">
+            <v-text-field
+              v-model="displayDate"
+              label="Filtrer par date"
+              readonly
+              v-bind="props"
               clearable
-              @update:modelValue="loadItems"
-            ></v-select>
-            <v-menu v-model="dateMenu" :close-on-content-click="false">
-              <template v-slot:activator="{ props }">
-                <v-text-field
-                  v-model="displayDate"
-                  label="Filtrer par date"
-                  readonly
-                  v-bind="props"
-                  clearable
-                  @click:clear="clearDate"
-                  class="mr-4"
-                  style="max-width: 200px;"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                v-model="options.selectedDate"
-                @update:model-value="handleDateSelect"
-                locale="fr-FR"
-                :first-day-of-week="1"
-                :header-format="'dddd D MMMM YYYY'"
-                :title-format="'MMMM YYYY'"
-              ></v-date-picker>
-            </v-menu>
-          </v-col>
-          <v-spacer></v-spacer>
-          <v-col cols="auto">
-            <v-btn color="primary" @click="openAddDialog">Ajouter Pénalité</v-btn>
-          </v-col>
-          <v-col cols="auto">
-            <v-btn @click="exportToExcel" class="ml-auto" color="green">
-              Export Excel
-            </v-btn>
-            <v-btn @click="refresh" class="ml-auto" color="blue">
-              Actualiser
-            </v-btn>
-          </v-col>
-        </v-row>
+              @click:clear="clearDate"
+              class="mr-4"
+              style="max-width: 200px;"
+              density="compact"
+              variant="outlined"
+            ></v-text-field>
+          </template>
+          <v-date-picker
+            v-model="options.selectedDate"
+            @update:model-value="handleDateSelect"
+            locale="fr-FR"
+            :first-day-of-week="1"
+          ></v-date-picker>
+        </v-menu>
+
+        <!-- Spacer to push buttons to the right -->
+        <v-spacer></v-spacer>
+
+        <!-- Add Penalty Button -->
+        <v-btn color="primary" @click="openAddDialog" class="mr-2">
+          Ajouter Pénalité
+        </v-btn>
+
+        <!-- Export and Refresh Buttons -->
+        <v-btn @click="exportToExcel" color="green" class="mr-2">
+          <v-icon left>mdi-file-excel</v-icon>
+          Export Excel
+        </v-btn>
+        <v-btn @click="refresh" color="blue">
+          Actualiser
+        </v-btn>
       </v-card-title>
 
+      <!-- Data Table -->
       <v-card-content>
         <v-data-table-server
           :headers="headers"
@@ -93,29 +102,39 @@
             item-title="name"
             item-value="id"
             label="Agents"
+            density="compact"
+            variant="outlined"
           ></v-select>
           <v-date-input
-            v-model="editedItem.startDate"
-            label="Date début"
-            :rules="[v => !!v || 'La date est requise']"
-            required
-            :min="getCurrentDate()"
-            locale="fr"
-            date-format="dd/MM/yyyy"
-            @update:modelValue="updateEndDateMin"
-          ></v-date-input>
-          <v-date-input
-            v-model="editedItem.endDate"
-            label="Date fin"
-            :rules="[v => !!v || 'La date est requise', v => validateDates(editedItem.startDate, v) || 'La date de fin doit être après la date de début']"
-            required
-            :min="editedItem.startDate || getCurrentDate()"
-            locale="fr"
-            date-format="dd/MM/yyyy"
-          ></v-date-input>
+  v-model="editedItem.startDate"
+  label="Date début"
+  :rules="[v => !!v || 'La date est requise']"
+  required
+  :min="getCurrentDate()"
+  locale="fr"
+  date-format="dd/MM/yyyy"
+  @update:modelValue="updateEndDateMin"
+  density="compact"
+  variant="outlined"
+   :allowed-dates="isWeekday"
+></v-date-input>
+<v-date-input
+  v-model="editedItem.endDate"
+  label="Date fin"
+  :rules="[v => !!v || 'La date est requise']"
+  required
+  :min="editedItem.startDate || getCurrentDate()"
+  locale="fr"
+  date-format="dd/MM/yyyy"
+  density="compact"
+  variant="outlined"
+   :allowed-dates="isWeekday"
+></v-date-input>
           <v-text-field
             v-model="editedItem.raison"
             label="Raison"
+            density="compact"
+            variant="outlined"
           ></v-text-field>
         </v-card-text>
         <v-card-actions>
@@ -168,6 +187,7 @@
       </v-card>
     </v-dialog>
 
+    <!-- Snackbar for Notifications -->
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -209,13 +229,10 @@ export default {
       },
       options: {
         page: 1,
+        itemsPerPage: 10,
         sortBy: [],
         sortDesc: [],
-        groupBy: [],
-        groupDesc: [],
-        multiSort: false,
-        mustSort: false,
-        selectedDate: null
+        selectedDate: null,
       },
       dateMenu: false,
       displayDate: '',
@@ -233,18 +250,19 @@ export default {
   },
 
   computed: {
-    ...mapGetters(["allPenalites", "selectedschedule", "getSchedules", "isLoadingPenalite", "totalPenalites"]),
-    ...mapGetters("agent", ["allAgents", "loading"]),
+    ...mapGetters(["allPenalites", "isLoadingPenalite", "totalPenalites"]),
+    ...mapGetters("agent", ["allAgents"]),
     isFormValid() {
-      return (
-        this.editedItem.startDate &&
-        this.editedItem.endDate &&
-        this.editedItem.raison &&
-        this.editedItem.UserId !== null &&
-        this.validateDates(this.editedItem.startDate, this.editedItem.endDate)
-      );
-    }
+  return (
+    this.editedItem.startDate &&
+    this.editedItem.endDate &&
+    this.editedItem.raison &&
+    this.editedItem.UserId !== null &&
+    this.validateDates(this.editedItem.startDate, this.editedItem.endDate)
+  );
+}
   },
+
 
   watch: {
     'options.selectedDate'(newDate) {
@@ -259,10 +277,6 @@ export default {
       "updatePenalite",
       "deletePenalite",
     ]),
-    refresh(){
-      this.loadItems(this.options)
-    },
-    ...mapActions(["fetchSchedules", "toggleSelected"]),
     ...mapActions({
       fetchAllAgents: "agent/fetchAllAgents"
     }),
@@ -273,10 +287,13 @@ export default {
 
     updateEndDateMin(startDate) {
       if (startDate && this.editedItem.endDate && new Date(this.editedItem.endDate) < new Date(startDate)) {
-        this.editedItem.endDate = startDate; // Reset endDate if it's before the new startDate
+        this.editedItem.endDate = startDate;
       }
     },
-
+    isWeekday(date) {
+  const day = new Date(date).getDay();
+  return day !== 0 && day !== 6; // 0 is Sunday, 6 is Saturday
+},
     handleDateSelect(date) {
       this.dateMenu = false;
       this.loadItems();
@@ -287,7 +304,14 @@ export default {
       this.displayDate = '';
       this.loadItems();
     },
-
+    validateDates(startDate, endDate) {
+  return new Date(startDate) < new Date(endDate);
+},
+updateEndDateMin(startDate) {
+  if (startDate && this.editedItem.endDate && new Date(this.editedItem.endDate) < new Date(startDate)) {
+    this.editedItem.endDate = startDate;
+  }
+},
     getCurrentDate() {
       const today = new Date();
       const year = today.getFullYear();
@@ -312,53 +336,68 @@ export default {
         endDate: null,
         raison: "",
         UserId: null,
-        ScheduleId: null,
       };
       this.dialog = true;
     },
 
     editItem(item) {
+      console.log(item)
       this.isEditing = true;
       this.editedItem = {
         id: item.id,
-        startDate: new Date(item.startDate).toISOString().split('T')[0],
-        endDate: new Date(item.endDate).toISOString().split('T')[0],
+        startDate:new Date(item.startDate),
+        endDate: new Date(item.endDate),
         raison: item.raison,
         UserId: item.UserId,
-        ScheduleId: item.ScheduleId,
       };
-      this.$nextTick(() => {
-        this.editedItem = { ...this.editedItem };
-      });
       this.dialog = true;
     },
+    formatDateForInput(date) {
+    if (!date) return null;
 
+    // If the date is already in the correct format (YYYY-MM-DD), return it directly
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+
+    // If the date is a JavaScript Date object, convert it to YYYY-MM-DD format
+    if (date instanceof Date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    // If the date is in another format, parse it and convert it to YYYY-MM-DD
+    const parsedDate = new Date(date);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate.toISOString().split('T')[0];
+    }
+
+    // If the date is invalid, return null
+    return null;
+  },
     async saveItem() {
-      if (!this.validateDates(this.editedItem.startDate, this.editedItem.endDate)) {
-        this.showSnackbar("La date de fin doit être après la date de début", 'error');
-        return;
-      }
+  if (!this.validateDates(this.editedItem.startDate, this.editedItem.endDate)) {
+    this.showSnackbar("La date de fin doit être après la date de début", 'error');
+    return;
+  }
 
-      if (this.isEditing) {
-        await this.updatePenalite(this.editedItem);
-        this.showSnackbar('Pénalité mise à jour avec succès');
-      } else {
-        await this.createPenalite(this.editedItem);
-        this.showSnackbar('Pénalité ajoutée avec succès');
-      }
-      await this.fetchPenalites(this.options);
-      this.closeDialog();
-    },
+  if (this.isEditing) {
+    await this.updatePenalite(this.editedItem);
+    this.showSnackbar('Pénalité mise à jour avec succès');
+  } else {
+    await this.createPenalite(this.editedItem);
+    this.showSnackbar('Pénalité ajoutée avec succès');
+  }
+  await this.fetchPenalites(this.options);
+  this.closeDialog();
+},
 
     closeDialog() {
       this.dialog = false;
       this.editedItem = {
-        agent: "",
-        startDate: "",
-        endDate: "",
+        startDate: null,
+        endDate: null,
         raison: "",
         UserId: null,
-        ScheduleId: null,
       };
       this.editedIndex = -1;
     },
@@ -390,8 +429,12 @@ export default {
 
     async loadItems(newOptions) {
       if (newOptions) {
-        this.options = newOptions;
+        this.options = {
+          ...this.options,
+          ...newOptions,
+        };
       }
+
       const { page, itemsPerPage, sortBy, sortDesc } = this.options;
       const sortKey = sortBy && sortBy.length > 0 ? sortBy[0].key : "name";
       const sortOrder = sortBy && sortBy.length > 0 ? sortBy[0].order : "asc";
@@ -431,11 +474,19 @@ export default {
       XLSX.writeFile(workbook, fileName);
       this.showSnackbar('Exportation Excel réussie');
     },
+
+    refresh() {
+      this.loadItems(this.options);
+    },
   },
 
   async created() {
     await this.fetchAllAgents();
-    await this.fetchSchedules();
+    await this.fetchPenalites(this.options);
   },
 };
 </script>
+
+<style scoped>
+/* Add custom styles if needed */
+</style>

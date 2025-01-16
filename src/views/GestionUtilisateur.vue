@@ -13,12 +13,15 @@
       </v-row>
 
       <v-data-table-server :headers="headers" :items="agents" :items-length="total" :loading="loadingagent"
+      
         @update:options="fetchAgents">
         <template v-slot:top>
           <v-toolbar flat>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
-            <v-text-field v-model="search" append-icon="mdi-magnify" label="Rechercher" single-line hide-details
+            <v-text-field
+            density="compact"
+            variant="outlined" v-model="search" append-icon="mdi-magnify" label="Rechercher" single-line hide-details
               @input="debouncedSearch"></v-text-field>
           </v-toolbar>
         </template>
@@ -97,7 +100,7 @@
           Êtes-vous sûr de vouloir supprimer cet agent ?
         </v-card-text>
         <v-card-actions>
-          <v-btn color="blue darken-1" text @click="closeConfirmDeleteDialog"
+          <v-btn color="blue darken-1" text @click="confirmDialog=false"
             >Annuler</v-btn
           >
           <v-btn color="red" text @click="confirmDelete">Supprimer</v-btn>

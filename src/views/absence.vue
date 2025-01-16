@@ -3,6 +3,17 @@
     <v-card>
       <v-card-title class="d-flex justify-start align-center">
         <v-select
+          v-model="options.selectedYear"
+          :items="years"
+          @update:modelValue="fetch"
+          label="filtrer une année"
+          clearable
+          class="mx-4"
+          density="compact"
+          variant="outlined"
+          style="max-width: 200px"
+        ></v-select>
+        <v-select
           v-model="options.selectedMonth"
           :items="months"
           @update:modelValue="fetch"
@@ -10,6 +21,8 @@
           clearable
           class="mx-4"
           item-value="value"
+           density="compact"
+          variant="outlined"
           style="max-width: 200px"
         ></v-select>
         <v-select
@@ -21,6 +34,8 @@
           clearable
           @update:modelValue="fetch"
           class="mr-2"
+           density="compact"
+          variant="outlined"
           style="max-width: 200px"
         ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
@@ -110,6 +125,12 @@ export default {
   name: "MyDataTable",
   data() {
     return {
+      years: [
+        { title: "2024", value: 2024 },
+        { title: "2025", value: 2025 },
+        { title: "2026", value: 2026 },
+        { title: "2027", value: 2027 },
+      ],
       headers: [
         { title: "Agent", key: "name" },
         { title: "Date début d'Absence", key: "startDate" },
@@ -138,6 +159,7 @@ export default {
         sortDesc: [true],
         selectedAgent: "",
         selectedMonth: "",
+        selectedYear: new Date().getFullYear(),
       },
       showAddAbsenceModal: false,
       newAbsence: {
@@ -203,6 +225,7 @@ await this.fetch(this.options)
         order: sortOrder,
         userId: this.options.selectedAgent,
         month: this.options.selectedMonth,
+        year: this.options.selectedYear,
       });
     },
     async add() {

@@ -15,11 +15,11 @@ const getters = {
 };
 
 const actions = {
-  async fetchAbsences({ commit }, { userId, month, page, limit, sortBy, order }) {
+  async fetchAbsences({ commit }, { userId, month, page, limit, sortBy, order ,year}) {
     commit('SET_LOADING', true);
     try {
       const response = await axios.get('http://localhost:3000/api/absence', {
-        params: { userId, month, page, limit, sortBy, order },
+        params: { userId, month, page, limit, sortBy, order,year },
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
         },

@@ -12,6 +12,8 @@
         >
         </div>
         <v-text-field
+         density="compact"
+          variant="outlined"
           v-model="search"
           append-icon="mdi-magnify"
           label="Rechercher"
