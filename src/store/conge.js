@@ -36,7 +36,7 @@ const actions = {
       const response = await axios.get('http://localhost:3000/api//penalitesconge', {
         params: { UserId },
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       commit('SET_PENALITES', response.data);
@@ -51,7 +51,7 @@ const actions = {
       const response = await axios.get('http://localhost:3000/api/conges', {
         params: { page, limit, sortBy, sortOrder, UserId,date },
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       commit('SET_CONGES', response.data);
@@ -68,7 +68,7 @@ const actions = {
     try {
       await axios.post('http://localhost:3000/api/conges', congeData, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
     } catch (error) {
@@ -83,7 +83,7 @@ const actions = {
     try {
       await axios.put(`http://localhost:3000/api/conges/${id}`, congeData, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
     } catch (error) {
@@ -99,7 +99,7 @@ const actions = {
     try {
       await axios.delete(`http://localhost:3000/api/conges/${id}`, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
     } catch (error) {
@@ -114,7 +114,7 @@ const actions = {
       const response = await axios.get(`http://localhost:3000/api/conge`, {
         params: { page, limit, sortBy, sortOrder ,UserId},
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       commit('SET_CONGES', response.data);
@@ -132,7 +132,7 @@ const actions = {
         { newStatus },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         }
       );

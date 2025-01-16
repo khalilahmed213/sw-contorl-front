@@ -1,6 +1,5 @@
 <template>
   <v-container>
-    <!-- User information -->
     <v-card class="mx-auto" max-width="500">
       <v-card-title>
         <span class="headline">{{ agentInfo.name }}</span>
@@ -9,7 +8,6 @@
       <v-divider></v-divider>
       <v-card-text>
         <v-form ref="form" v-model="valid">
-          <!-- Replace editable fields with read-only text -->
           <v-list-item>
             <v-list-item-title>Nombre de mois éffectués:</v-list-item-title>
             <v-list-item-subtitle>{{ agentInfo.months }}</v-list-item-subtitle>
@@ -29,9 +27,18 @@
             <v-list-item-title>téléphone:</v-list-item-title>
             <v-list-item-subtitle>{{ agentInfo.phoneNumber }}</v-list-item-subtitle>
           </v-list-item>
-          <v-text-field v-model="newPassword" :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showPassword ? 'text' : 'password'" label="Mot de passe" :rules="passwordRules"
-            @click:append="togglePassword" />
+
+          <v-text-field 
+            v-if="showPasswordField" 
+            v-model="newPassword" 
+            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :type="showPassword ? 'text' : 'password'" 
+            label="Mot de passe" 
+            :rules="showPasswordField ? passwordRules : []"
+            @click:append="togglePassword"   
+            density="compact"
+            variant="outlined"
+          />
 
           <v-btn text color="primary" class="mt-3" @click="togglePasswordReset">
             {{ showPasswordField ? 'annuler le resete du mot de passe' : 'reseter le mot de passe' }}
@@ -75,6 +82,7 @@ export default {
       this.showPasswordField = !this.showPasswordField;
       if (!this.showPasswordField) {
         this.newPassword = '';
+        this.$refs.form.resetValidation(); // Reset validation state
       }
     },
     togglePassword() {

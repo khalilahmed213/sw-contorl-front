@@ -55,30 +55,51 @@
             </template>
             <v-form v-else ref="form" v-model="valid">
               <v-text-field v-model="editedAgent.name" label="Agent"
-                :rules="[(v) => !!v || 'Agent requis']"></v-text-field>
+                :rules="[(v) => !!v || 'Agent requis']"
+                density="compact"
+                variant="outlined"></v-text-field>
               <v-text-field v-model="editedAgent.email" label="Email" :rules="[
                 (v) => !!v || 'Email requis',
                 (v) => isValidEmail(v) || 'Email invalide',
-              ]"></v-text-field>
+              ]"
+               density="compact"
+               variant="outlined"></v-text-field>
               <v-text-field v-model="editedAgent.UserInfo.months" label="Nombre de mois" type="number" :rules="[
         (v) => !!v || 'Nombre de mois requis',
         (v) => (v > 0 && v <= 12) || 'Nombre de mois doit être entre 1 et 12',
-      ]"></v-text-field>
+      ]"
+       density="compact"
+       variant="outlined"></v-text-field>
               <v-text-field v-model="editedAgent.UserInfo.soldeAncienConge" label="Reste Ancien Conge" type="number"
                 :rules="[
                   (v) => !!v || 'Reste Ancien Conge requis',
                   (v) => v > 0 || 'Nombre de mois doit être supérieur à 0',
-                ]"></v-text-field>
-              <v-text-field v-if="!isEditMode" v-model="editedAgent.password" label="Mot de passe" type="password"
-                :rules="[(v) => !!v || 'Mot de passe requis']"></v-text-field>
+                ]"
+                 density="compact"
+                 variant="outlined"></v-text-field>
+                 <v-text-field 
+    v-if="!isEditMode" 
+    v-model="editedAgent.password" 
+    label="Mot de passe"
+    :type="showPassword ? 'text' : 'password'"
+    :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+    @click:append="showPassword = !showPassword"
+    :rules="[(v) => !!v || 'Mot de passe requis']"
+    density="compact"
+    variant="outlined"
+></v-text-field>
               <v-text-field v-model="editedAgent.phoneNumber" label="Numéro de téléphone" :rules="[
                 (v) => !!v || 'Numéro de téléphone requis',
                 (v) =>
                   /^\d{8}$/.test(v) ||
                   'Numéro de téléphone invalide (8 chiffres)',
-              ]"></v-text-field>
+              ]"
+               density="compact"
+               variant="outlined"></v-text-field>
               <v-text-field v-model="editedAgent.address" label="Adresse"
-                :rules="[(v) => !!v || 'Adresse requise']"></v-text-field>
+                :rules="[(v) => !!v || 'Adresse requise']"
+                density="compact"
+                variant="outlined"></v-text-field>
             </v-form>
           </v-card-text>
           <v-card-actions>
@@ -129,6 +150,7 @@ import debounce from 'lodash/debounce';
 export default {
   data() {
     return {
+      showPassword: false,
       form: null,
       search: '',
       options: {},

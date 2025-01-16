@@ -21,7 +21,7 @@ const actions = {
       const response = await axios.get('http://localhost:3000/api/retard', {
         params: { userId, month, page, limit, sortBy, order,year },
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
      

@@ -38,7 +38,7 @@ export default {
             search
           },
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }     
         });
         commit('SET_PROJECTS', response.data.projects);
@@ -54,7 +54,7 @@ export default {
       try {
         const response = await axios.post('http://localhost:3000/api/projects', projectData, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
       } catch (error) {
@@ -68,7 +68,7 @@ export default {
       try {
         const response = await axios.put(`http://localhost:3000/api/projects/${projectData.id}`, projectData, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
 
@@ -84,7 +84,7 @@ export default {
           console.log(`Attempting to delete project with ID: ${projectId}`);
           const response = await axios.delete(`http://localhost:3000/api/projects/${projectId}`, {
             headers: {
-              Authorization: `Bearer ${getAccessToken()}`
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
           });
         } catch (error) {

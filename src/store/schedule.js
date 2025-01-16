@@ -56,7 +56,7 @@ const actions = {
     try {
       const response = await axios.get('http://localhost:3000/api/schedules', {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
      
@@ -70,7 +70,7 @@ const actions = {
     try {
       const response = await axios.post('http://localhost:3000/api/schedules', schedule, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
        // Adjusted to use response.data.data
@@ -86,7 +86,7 @@ const actions = {
     try {
       const response = await axios.put(`http://localhost:3000/api/schedules/${schedule.id}`, schedule, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       return { success: true, message: response.data.message }; 
@@ -102,7 +102,7 @@ const actions = {
     try {
     const response =await axios.delete(`http://localhost:3000/api/schedules/${id}`, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       return { success: response.data.success, message: response.data.message }; 
@@ -116,7 +116,7 @@ const actions = {
     try {
       await axios.put(`http://localhost:3000/api/schedules/toggle-selected/${ScheduleId}`,{}, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
@@ -131,7 +131,7 @@ const actions = {
       const response = await axios.get(`http://localhost:3000/api/schedules/getisramadan`, {
         params: { date },
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       commit('SET_IS_RECURRING', reponse.data.isRamadan);
@@ -143,7 +143,7 @@ const actions = {
     try {
       const response = await axios.get('http://localhost:3000/api/schedules/getisselectedschedule', {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       console.log(response.data.schedule.id)

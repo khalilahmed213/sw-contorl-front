@@ -35,7 +35,7 @@ const actions = {
       const response = await axios.get('http://localhost:3000/api/autorisations', {
         params: { page, limit, sortBy, sortOrder, agentId,date},
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       commit('SET_AUTORISATIONS', response.data);
@@ -54,7 +54,7 @@ const actions = {
     try {
       await axios.put(`http://localhost:3000/api/autorisations/${id}`, autorisationData, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
     } catch (error) {
@@ -69,7 +69,7 @@ const actions = {
     try {
       await axios.delete(`http://localhost:3000/api/autorisations/${id}`, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
     } catch (error) {
@@ -85,7 +85,7 @@ const actions = {
       const response = await axios.get(`http://localhost:3000/api/autorisation`, {
         params: { page, limit, sortBy, sortOrder ,UserId},
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       console.log(UserId)
@@ -104,7 +104,7 @@ const actions = {
         { newStatus },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         }
       );
@@ -122,7 +122,7 @@ const actions = {
     try {
       await axios.post(`http://localhost:3000/api/autorisations`, autorisationData, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
      

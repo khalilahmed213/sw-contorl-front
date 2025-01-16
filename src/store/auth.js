@@ -42,10 +42,10 @@ const actions = {
     } 
   },
   logout({ commit, state }) {
-    console.log(getAccessToken())
+    console.log(localStorage.getItem('accessToken'))
     const response = axios.post('http://localhost:3000/api/auth/logout', {},{
       headers: {
-        Authorization: `Bearer ${getAccessToken()}`,
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       }}); 
     commit('SET_ACCESS_TOKEN', null);
     commit('SET_USER', null);
@@ -80,7 +80,7 @@ const actions = {
         const response = await axios.put('http://localhost:3000/api/auth/resetpasswordprofile', { id, password },
           {
             headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
             },
           }
         );

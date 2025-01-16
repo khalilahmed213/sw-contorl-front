@@ -3,6 +3,8 @@
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <v-select
+          density="compact"
+          variant="outlined"
           v-model="options.selectedMonth"
           :items="months"
           @update:modelValue="fetch"

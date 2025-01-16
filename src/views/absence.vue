@@ -39,7 +39,7 @@
           style="max-width: 200px"
         ></v-select>
         <v-btn @click="exportToExcel" class="ml-auto" color="green">Export Excel</v-btn>
-        <v-btn @click="showAddAbsenceModal = true" class="ml-2" color="primary">ajouter Absence</v-btn>
+        <v-btn @click="showAddAbsenceModal = true" class="ml-2" color="primary" :disabled="isWeekend">ajouter Absence</v-btn>
         <v-btn @click="refresh" color="blue"
           >Actualiser</v-btn
         >
@@ -75,6 +75,8 @@
                       item-value="id"
                       label="Selectionner un Agent"
                       required
+                       density="compact"
+    variant="outlined"
                     ></v-select>
                   </v-col>
                   <v-col cols="12">
@@ -82,6 +84,8 @@
                       v-model="newAbsence.raison"
                       label="raison"
                       required
+                       density="compact"
+    variant="outlined"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -182,6 +186,11 @@ export default {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(this.newAbsence.date).toLocaleDateString('fr-FR', options);
     },
+    isWeekend() {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    return dayOfWeek === 0 || dayOfWeek === 6;
+  },
   },
   methods: {
     ...mapActions({

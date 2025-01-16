@@ -31,7 +31,7 @@ const actions = {
           date
         },
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       commit('setPenalites', response.data.data);
@@ -47,7 +47,7 @@ const actions = {
     try {
       const response = await axios.post('http://localhost:3000/api/penalites', penaliteData, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
     } catch (error) {
@@ -59,7 +59,7 @@ const actions = {
     try {
       const response = await axios.put(`http://localhost:3000/api/penalites/${updatedPenalite.id}`, updatedPenalite, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
     } catch (error) {
@@ -72,7 +72,7 @@ const actions = {
     try {
       await axios.delete(`http://localhost:3000/api/penalites/${id}`, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
     } catch (error) {

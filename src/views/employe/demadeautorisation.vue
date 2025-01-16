@@ -64,6 +64,8 @@
   date-format="dd/MM/yyyy"
   @update:modelValue="handleDateChange" 
    :allowed-dates="allowedDates"
+    density="compact"
+            variant="outlined"
 ></v-date-input>
             <v-text-field
               v-model="editedItem.heureDebut"
@@ -71,6 +73,8 @@
               type="time"
               :rules="[v => !!v || 'L\'heure de début est requise', validateStartTime]"
               required
+               density="compact"
+            variant="outlined"
             ></v-text-field>
             <v-text-field
               v-model="editedItem.heureFin"
@@ -78,6 +82,8 @@
               type="time"
               :rules="[v => !!v || 'L\'heure de fin est requise', validateEndTime]"
               required
+               density="compact"
+            variant="outlined"
             ></v-text-field>
             <v-alert
               v-if="formError"

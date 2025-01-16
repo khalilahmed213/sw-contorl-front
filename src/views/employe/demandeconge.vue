@@ -47,6 +47,8 @@
         <v-card-text>
           <v-form ref="form" v-model="valid" @submit.prevent="saveItem">
             <v-date-input
+              density="compact"
+          variant="outlined"
   v-model="editedItem.startDate"
   label="Date début"
   :rules="getStartDateRules()"
@@ -59,6 +61,8 @@
 ></v-date-input>
 
 <v-date-input
+  density="compact"
+          variant="outlined"
   v-model="editedItem.endDate"
   label="Date fin"
   :rules="getEndDateRules()"
@@ -69,7 +73,10 @@
   @change="changeDateFin"
   :allowed-dates="allowedDates" 
 ></v-date-input>
-            <v-text-field v-model="editedItem.raison" label="Raison" type="text" required></v-text-field>
+            <v-text-field v-model="editedItem.raison" 
+            density="compact"
+            variant="outlined"
+            label="Raison" type="text" required></v-text-field>
             <v-alert v-if="formError" type="error" class="mt-3">{{ formError }}</v-alert>
           </v-form>
         </v-card-text>

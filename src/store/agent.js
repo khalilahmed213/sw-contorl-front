@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const getAccessToken = () => localStorage.getItem('accessToken');
+const getAccessToken = () => localStorage.getItem('accessToken')
 
 export default {
   namespaced: true,
@@ -55,7 +55,7 @@ export default {
             search
           },
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
     
@@ -78,7 +78,7 @@ export default {
         };
         await axios.post('http://localhost:3000/api/agents', payload, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
       } catch (error) {
@@ -98,7 +98,7 @@ export default {
         };
         await axios.put(`http://localhost:3000/api/agents/${agent.id}`, payload, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
       } catch (error) {
@@ -110,7 +110,7 @@ export default {
       try {
         await axios.delete(`http://localhost:3000/api/agents/${id}`, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
         dispatch('fetchAgents', { page: 1 });
@@ -126,7 +126,7 @@ export default {
       try {
         const response = await axios.get(`http://localhost:3000/api/agents/allagents`, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
         commit('SET_ALL_AGENTS', response.data);
@@ -141,7 +141,7 @@ export default {
       try {
         await axios.post('http://localhost:3000/api/reset-password', { email }, {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
       } catch (error) {
@@ -155,7 +155,7 @@ export default {
       try {
         const response = await axios.get('http://localhost:3000/api/agents/userinfo', {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
           params: { userId:userId },
         }); 

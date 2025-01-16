@@ -23,7 +23,7 @@ const actions = {
       const response = await axios.get('http://localhost:3000/api/congecalcule', {
         params: { userId, page, limit, sortBy, order,year},
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
      
@@ -41,7 +41,7 @@ const actions = {
       const response = await axios.get('http://localhost:3000/api/calculep', {
         params: { userId },
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
       commit('SET_LEAVE_BALANCES', response.data);
@@ -59,7 +59,7 @@ const actions = {
         payload, 
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`, 
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`, 
             'Content-Type': 'application/json',
           },
         }
